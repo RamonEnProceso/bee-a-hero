@@ -4,7 +4,7 @@
 
 [node name="Building" type="Node2D"]
 script = ExtResource("1_building")
-max_health = 10
+max_health = 20
 slots_granted = 4
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

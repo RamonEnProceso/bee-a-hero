@@ -46,6 +46,7 @@ suicide_bee_ring = 1
 
 [node name="HexGrid" type="Node2D" parent="." unique_id=205318142]
 script = ExtResource("2_grid")
+outline_color = Color(0.8745098, 0.6313726, 0.11764706, 1)
 wall_scene = ExtResource("6_wall")
 tower_scene = ExtResource("7_tower")
 reinforced_wall_scene = ExtResource("18_rwall")
@@ -77,7 +78,6 @@ bear_scene = ExtResource("16_bear")
 bomb_wasp_scene = ExtResource("30_bomb")
 hormiga_scene = ExtResource("31_hormiga")
 polilla_scene = ExtResource("32_polilla")
-enemies_per_wave = 2
 time_between_waves = 8.0
 
 [node name="BuilderBee" type="Node2D" parent="." unique_id=874248090]
@@ -90,7 +90,7 @@ projectile_scene = ExtResource("10_proj")
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=242645184]
 
-[node name="HoneyCard" type="Panel" parent="UILayer"]
+[node name="HoneyCard" type="Panel" parent="UILayer" unique_id=2074627975]
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 150.0
@@ -108,14 +108,14 @@ theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 text = "Miel: 0"
 
-[node name="SlotsCard" type="Panel" parent="UILayer"]
+[node name="SlotsCard" type="Panel" parent="UILayer" unique_id=435307222]
 offset_left = 8.0
 offset_top = 58.0
 offset_right = 190.0
 offset_bottom = 92.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
 
-[node name="SlotsLabel" type="Label" parent="UILayer"]
+[node name="SlotsLabel" type="Label" parent="UILayer" unique_id=1469213895]
 offset_left = 16.0
 offset_top = 62.0
 offset_right = 190.0
@@ -126,14 +126,14 @@ theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 20
 text = "Abejas: 0/1"
 
-[node name="FreeBeeCard" type="Panel" parent="UILayer"]
+[node name="FreeBeeCard" type="Panel" parent="UILayer" unique_id=1070171737]
 offset_left = 8.0
 offset_top = 98.0
 offset_right = 190.0
 offset_bottom = 132.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
 
-[node name="FreeBeeLabel" type="Label" parent="UILayer"]
+[node name="FreeBeeLabel" type="Label" parent="UILayer" unique_id=1499440428]
 offset_left = 16.0
 offset_top = 102.0
 offset_right = 190.0
@@ -179,7 +179,6 @@ theme_override_colors/font_outline_color = Color(0.35, 0.24, 0.06, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 text = "Oleada 1"
-horizontal_alignment = 0
 
 [node name="WaveBanner" type="Label" parent="UILayer" unique_id=1426138258]
 visible = false
