@@ -28,6 +28,18 @@ var built: bool = true
 # Rondas que faltan para terminar la construcción.
 var _construction_left: int = 0
 var _hit_tween: Tween
+# Nodos de la vista de obra (indicador, cono y mazo): se crean solo si el edificio
+# tarda rondas en construirse y se liberan al terminarse.
+var _indicator: Sprite2D
+var _cone: Sprite2D
+var _mallet: Sprite2D
+var _indicator_tween: Tween
+var _mallet_tween: Tween
+var _squash_tween: Tween
+## Posición del cono (borde inferior del panal) en unidades de hex_size.
+const CONE_OFFSET := Vector2(0.0, 2.5)
+## Posición del pivote del mazo (el mango) en unidades de hex_size.
+const MALLET_PIVOT := Vector2(2.4, 0.5)
 @onready var sprite: Sprite2D = $Sprite2D
 
 
@@ -42,12 +54,14 @@ func _ready() -> void:
 	else:
 		built = false
 		sprite.modulate = Color(0.5, 0.5, 0.5, 1.0)
+		_spawn_construction_visuals()
 
 
 ## Marca el edificio como terminado: suma slots y recupera su color.
 func _finish_construction() -> void:
 	built = true
 	sprite.modulate = Color.WHITE
+	_clear_construction_visuals()
 	Fx.squash(sprite)
 	Game.increase_capacity(slots_granted)
 	# Feedback: sonido y ráfaga de partículas (momento de "desbloqueo").
@@ -73,6 +87,75 @@ func _reward() -> void:
 ## Textura del edificio (cada subtipo devuelve la suya).
 func _texture() -> Texture2D:
 	return Art.building()
+
+
+## Crea los tres elementos de la obra (indicador, cono y mazo) mientras el edificio
+## se construye. Se liberan al terminar la construcción.
+func _spawn_construction_visuals() -> void:
+	# Indicador en el centro: late creciendo y achicándose.
+	_indicator = Sprite2D.new()
+	_indicator.texture = load("res://textures/ConstruccionIndicador.png")
+	add_child(_indicator)
+	_start_indicator_pulse()
+
+	# Cono debajo del sprite, delimitando el borde inferior del panal de 7.
+	_cone = Sprite2D.new()
+	_cone.texture = load("res://textures/ConstruccionCono.png")
+	_cone.position = CONE_OFFSET * hex_size
+	add_child(_cone)
+
+	# Mazo a la derecha, pivotando desde el mango (abajo-derecha); golpea en bucle.
+	_mallet = Sprite2D.new()
+	_mallet.texture = load("res://textures/ConstruccionMazo.png")
+	_mallet.centered = false
+	_mallet.offset = Vector2(-64.0, -64.0)  # el mango termina en la esquina inferior-derecha
+	_mallet.position = MALLET_PIVOT * hex_size
+	add_child(_mallet)
+	_start_mallet_swing()
+
+
+## Latido del indicador: crece y se achica de a poco, en bucle.
+func _start_indicator_pulse() -> void:
+	_indicator.scale = Vector2(0.8, 0.8)
+	_indicator_tween = create_tween().set_loops()
+	_indicator_tween.tween_property(_indicator, "scale", Vector2(1.2, 1.2), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_indicator_tween.tween_property(_indicator, "scale", Vector2(0.8, 0.8), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+## Balanceo del mazo: baja golpeando, el edificio se aplasta y vuelve a subir.
+func _start_mallet_swing() -> void:
+	_mallet.rotation = 0.4  # arranca levantado (~23°)
+	_mallet_tween = create_tween().set_loops()
+	_mallet_tween.tween_property(_mallet, "rotation", -1.1, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	_mallet_tween.tween_callback(_on_mallet_strike)
+	_mallet_tween.tween_property(_mallet, "rotation", 0.4, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_mallet_tween.tween_interval(0.25)
+
+
+## Al impactar el mazo, el edificio se aplasta un poco y vuelve a su tamaño.
+func _on_mallet_strike() -> void:
+	if _squash_tween != null and _squash_tween.is_valid():
+		_squash_tween.kill()
+	sprite.scale = Vector2.ONE
+	_squash_tween = create_tween()
+	_squash_tween.tween_property(sprite, "scale", Vector2(0.9, 1.1), 0.06)
+	_squash_tween.tween_property(sprite, "scale", Vector2.ONE, 0.12)
+
+
+## Detiene y libera los elementos de la obra al terminar la construcción.
+func _clear_construction_visuals() -> void:
+	if _indicator_tween != null and _indicator_tween.is_valid():
+		_indicator_tween.kill()
+	if _mallet_tween != null and _mallet_tween.is_valid():
+		_mallet_tween.kill()
+	if _squash_tween != null and _squash_tween.is_valid():
+		_squash_tween.kill()
+	if is_instance_valid(_indicator):
+		_indicator.queue_free()
+	if is_instance_valid(_cone):
+		_cone.queue_free()
+	if is_instance_valid(_mallet):
+		_mallet.queue_free()
 
 
 ## Resta vida al edificio; en obra no se puede atacar.

@@ -502,7 +502,7 @@ func _draw() -> void:
 		if preview_type == Game.BuildType.BIG_TOWER:
 			s = hex_size * 4.5
 		elif _is_building(preview_type):
-			s = hex_size * 6.0
+			s = hex_size * 4.0
 		var mp: Vector2 = to_local(preview_mouse_world)
 		draw_texture_rect(preview_texture, Rect2(mp - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, 0.7))
 
