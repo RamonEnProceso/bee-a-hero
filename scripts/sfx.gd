@@ -11,6 +11,17 @@ func ding() -> void:
 	_play(_tone(660.0, 0.25))
 
 
+## "Coin": tono corto y brillante al vender (suena a moneda).
+func coin() -> void:
+	_play(_tone(1180.0, 0.1))
+
+
+## "Upgrade": acorde ascendente (do + mi) al mejorar una construcción.
+func upgrade() -> void:
+	_play(_tone(523.0, 0.18))
+	_play(_tone(659.0, 0.22))
+
+
 ## Reproduce `wav` y libera el reproductor cuando termina.
 func _play(wav: AudioStreamWAV) -> void:
 	var player := AudioStreamPlayer.new()

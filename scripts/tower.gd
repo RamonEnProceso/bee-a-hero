@@ -20,11 +20,27 @@ var fire_cooldown: float = 0.0
 var _hit_tween: Tween
 @onready var sprite: Sprite2D = $Sprite2D
 
+## Tipo de construcción (para leer costo de venta y stats de mejora).
+@export var build_type: int = 3  # Game.BuildType.TOWER
+## Nivel de mejora actual (1 a 3).
+var level: int = 1
+## Stats base capturados al crearse (para aplicar multiplicadores por nivel).
+var _base_fire_interval: float
+var _base_damage: int
+var _base_max_health: int
+## Etiqueta del nivel (solo nivel 2 y 3).
+var _level_label: Label
+
 
 func _ready() -> void:
+	_base_fire_interval = fire_interval
+	_base_damage = damage
+	_base_max_health = max_health
 	health = max_health
+	_apply_level_stats()
 	sprite.texture = _texture()
 	Fx.squash(sprite)
+	_refresh_level_indicator()
 
 
 ## Textura de la torre (la doble devuelve la suya).
@@ -41,6 +57,11 @@ func _process(delta: float) -> void:
 
 	# Apuntamos hacia el enemigo más cercano.
 	rotation = (target.global_position - global_position).angle()
+	# El número de nivel no gira con la torre: lo contra-rotamos para que quede
+	# derecho y en una posición fija sobre ella.
+	if _level_label != null:
+		_level_label.rotation = -rotation
+		_level_label.position = Vector2(-8.0, -hex_size * 1.6).rotated(-rotation)
 
 	if fire_cooldown <= 0.0:
 		_shoot(target)
@@ -108,3 +129,91 @@ func die() -> void:
 	grid.remove_tower(self)
 	Game.unregister_slotted(self)
 	queue_free()
+
+
+## Nombre para el menú contextual.
+func display_name() -> String:
+	return Game.BUILD_DEFS[build_type]["name"]
+
+
+## ¿Esta torre/aliado se puede mejorar?
+func is_upgradable() -> bool:
+	return Game.is_upgradable(build_type)
+
+
+## Costo para pasar al siguiente nivel (0 si está al máximo).
+func upgrade_cost() -> int:
+	return Game.upgrade_cost(build_type, level)
+
+
+## ¿Se puede mejorar ahora (hay nivel disponible y miel suficiente)?
+func can_upgrade() -> bool:
+	return level < Game.max_level(build_type) and Game.can_afford(upgrade_cost())
+
+
+## Miel que devuelve vender esta torre.
+func sell_value() -> int:
+	return Game.sell_value(build_type, level)
+
+
+## Mejora al siguiente nivel: descuenta miel, sube de nivel y aplica los
+## multiplicadores de stats. Devuelve true si se mejoró.
+func upgrade() -> bool:
+	if not can_upgrade():
+		return false
+	Game.spend(upgrade_cost())
+	level += 1
+	_apply_level_stats()
+	_refresh_level_indicator()
+	Sfx.upgrade()
+	Fx.burst(get_parent(), global_position, Color(0.5, 1.0, 0.7), 14)
+	return true
+
+
+## Aplica los multiplicadores del nivel actual sobre los stats base.
+func _apply_level_stats() -> void:
+	var fire_mult: float = Game.level_stat(build_type, level, "fire_mult", 1.0)
+	var damage_mult: float = Game.level_stat(build_type, level, "damage_mult", 1.0)
+	var health_mult: float = Game.level_stat(build_type, level, "health_mult", 1.0)
+	fire_interval = _base_fire_interval * fire_mult
+	damage = int(round(_base_damage * damage_mult))
+	var new_max: int = int(round(_base_max_health * health_mult))
+	if new_max > max_health:
+		health += new_max - max_health
+	max_health = new_max
+	health = mini(health, max_health)
+
+
+## Salta directo a `lvl` (para colocar torres gratis que ya vienen mejoradas).
+func set_level(lvl: int) -> void:
+	level = clampi(lvl, 1, Game.max_level(build_type))
+	_apply_level_stats()
+	_refresh_level_indicator()
+
+
+## Vende la torre: devuelve 3/8 de lo invertido y la retira.
+func sell() -> void:
+	var refund: int = sell_value()
+	Game.gain(refund)
+	Sfx.coin()
+	Fx.float_text(get_parent(), global_position, "+%d" % refund)
+	die()
+
+
+## Muestra el nivel actual sobre la torre (nivel 1 no muestra nada).
+func _refresh_level_indicator() -> void:
+	if level <= 1:
+		if _level_label != null:
+			_level_label.queue_free()
+			_level_label = null
+		return
+	if _level_label == null:
+		_level_label = Label.new()
+		_level_label.z_index = 30
+		_level_label.add_theme_font_size_override("font_size", 12)
+		_level_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.6))
+		_level_label.add_theme_color_override("font_outline_color", Color(0.2, 0.15, 0.05))
+		_level_label.add_theme_constant_override("outline_size", 4)
+		add_child(_level_label)
+	_level_label.text = str(level)
+	_level_label.position = Vector2(-8.0, -hex_size * 1.6)

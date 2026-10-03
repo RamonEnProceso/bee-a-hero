@@ -11,6 +11,10 @@ func _texture() -> Texture2D:
 	return Art.guarderia()
 
 
-## Entrega una torre gratis al final de cada oleada (el jugador la coloca después).
+## Entrega torres gratis al final de cada oleada según su nivel: 1 torre normal,
+## luego 1 de nivel 2, luego 2 de nivel 3.
 func _reward() -> void:
-	Game.grant_free_tower()
+	var towers: int = Game.level_stat(build_type, level, "towers", 1)
+	var tower_level: int = Game.level_stat(build_type, level, "tower_level", 1)
+	for i in towers:
+		Game.grant_free_tower(tower_level)

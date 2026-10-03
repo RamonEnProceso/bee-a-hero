@@ -4,6 +4,7 @@
 
 [node name="Guardia" type="Node2D"]
 script = ExtResource("1_guardia")
+build_type = 8
 range_radius = 60.0
 fire_interval = 0.9
 damage = 4

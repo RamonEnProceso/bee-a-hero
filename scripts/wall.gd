@@ -19,6 +19,11 @@ var health: int
 var _hit_tween: Tween
 @onready var sprite: Sprite2D = $Sprite2D
 
+## Tipo de construcción (para leer el costo de venta).
+@export var build_type: int = 0  # Game.BuildType.WALL
+## Las paredes no se mejoran: nivel fijo en 1.
+var level: int = 1
+
 
 func _ready() -> void:
 	health = max_health
@@ -52,6 +57,41 @@ func _shake() -> void:
 	_hit_tween.tween_property(sprite, "position", Vector2.ZERO, 0.035)
 
 
+## Se rompe (por un enemigo): libera la celda y desaparece.
 func _break() -> void:
 	grid.remove_wall(cell)
 	queue_free()
+
+
+## Nombre para el menú contextual.
+func display_name() -> String:
+	return Game.BUILD_DEFS[build_type]["name"]
+
+
+## Las paredes no se mejoran.
+func is_upgradable() -> bool:
+	return false
+
+
+## Sin costo de mejora (no se puede mejorar).
+func upgrade_cost() -> int:
+	return 0
+
+
+## Nunca se puede mejorar.
+func can_upgrade() -> bool:
+	return false
+
+
+## Miel que devuelve vender esta pared.
+func sell_value() -> int:
+	return Game.sell_value(build_type, level)
+
+
+## Vende la pared: devuelve 3/8 de su costo y la retira.
+func sell() -> void:
+	var refund: int = sell_value()
+	Game.gain(refund)
+	Sfx.coin()
+	Fx.float_text(get_parent(), global_position, "+%d" % refund)
+	_break()

@@ -1,7 +1,7 @@
 class_name Building
 extends Node2D
 
-## Edificio: ocupa un panal de 7 hexágonos y habilita 3 slots de abejas-torre.
+## Edificio: ocupa un panal de 7 hexágonos y habilita slots de abejas-torre.
 ## Mientras se construye (build_rounds > 0) ocupa sus celdas pero no se puede
 ## atacar. Al terminarse (o al instante si build_rounds == 0) suma slots y pasa
 ## a dar su recompensa cada oleada. Al romperse resta los slots.
@@ -49,12 +49,20 @@ const CONE_OFFSETS := [
 const MALLET_PIVOT := Vector2(1.4, 0.2)
 @onready var sprite: Sprite2D = $Sprite2D
 
+## Tipo de construcción (para leer costo de venta y stats de mejora).
+@export var build_type: int = 5  # Game.BuildType.BASE
+## Nivel de mejora actual (1 a 3).
+var level: int = 1
+## Etiqueta que muestra el nivel sobre el edificio (solo nivel 2 y 3).
+var _level_label: Label
+
 
 func _ready() -> void:
 	health = max_health
 	sprite.texture = _texture()
 	add_to_group("buildings")
 	Fx.squash(sprite)
+	_refresh_level_indicator()
 	_construction_left = build_rounds
 	if build_rounds <= 0:
 		_finish_construction()
@@ -196,9 +204,14 @@ func _shake() -> void:
 	_hit_tween.tween_property(sprite, "position", Vector2.ZERO, 0.035)
 
 
-## Al destruirse libera sus celdas y resta sus slots, eliminando las últimas
-## abejas colocadas (LIFO) hasta entrar en la nueva capacidad.
+## Al destruirse (por un enemigo) libera celdas y slots, sacudiendo la cámara.
 func die() -> void:
+	_teardown(true)
+
+
+## Retira el edificio de la grilla y libera sus slots (LIFO). Si `shake_cam`
+## es true sacude la cámara (cuando lo destruye un enemigo, no al venderlo).
+func _teardown(shake_cam: bool) -> void:
 	grid.remove_building(self)
 	var removed: Array[Node] = Game.decrease_capacity(slots_granted)
 	for node in removed:
@@ -206,6 +219,83 @@ func die() -> void:
 			node.die()
 		elif is_instance_valid(node):
 			node.queue_free()
-	# Feedback: la cámara se sacude al perder un edificio.
-	Fx.shake(get_viewport().get_camera_2d())
+	if shake_cam:
+		Fx.shake(get_viewport().get_camera_2d())
 	queue_free()
+
+
+## Nombre para el menú contextual.
+func display_name() -> String:
+	return Game.BUILD_DEFS[build_type]["name"]
+
+
+## ¿Este edificio se puede mejorar?
+func is_upgradable() -> bool:
+	return Game.is_upgradable(build_type)
+
+
+## Costo para pasar al siguiente nivel (0 si está al máximo).
+func upgrade_cost() -> int:
+	return Game.upgrade_cost(build_type, level)
+
+
+## ¿Se puede mejorar ahora (hay nivel disponible y miel suficiente)?
+func can_upgrade() -> bool:
+	return level < Game.max_level(build_type) and Game.can_afford(upgrade_cost())
+
+
+## Miel que devuelve vender este edificio.
+func sell_value() -> int:
+	return Game.sell_value(build_type, level)
+
+
+## Mejora al siguiente nivel: descuenta miel, sube de nivel, aplica stats y
+## refresca el indicador. Devuelve true si se mejoró.
+func upgrade() -> bool:
+	if not can_upgrade():
+		return false
+	Game.spend(upgrade_cost())
+	level += 1
+	_apply_level_stats()
+	_refresh_level_indicator()
+	Sfx.upgrade()
+	Fx.burst(get_parent(), global_position, Color(0.5, 1.0, 0.7), 18)
+	return true
+
+
+## Aplica los stats del nivel actual. El edificio base suma la diferencia de
+## slots; la guardería y la cultivadora no cambian stats acá (leen su nivel al
+## dar la recompensa).
+func _apply_level_stats() -> void:
+	var new_slots: int = Game.level_stat(build_type, level, "slots", slots_granted)
+	var delta: int = new_slots - slots_granted
+	slots_granted = new_slots
+	Game.increase_capacity(delta)
+
+
+## Vende el edificio: devuelve 3/8 de lo invertido y lo retira.
+func sell() -> void:
+	var refund: int = sell_value()
+	Game.gain(refund)
+	Sfx.coin()
+	Fx.float_text(get_parent(), global_position, "+%d" % refund)
+	_teardown(false)
+
+
+## Muestra el nivel actual sobre el edificio (nivel 1 no muestra nada).
+func _refresh_level_indicator() -> void:
+	if level <= 1:
+		if _level_label != null:
+			_level_label.queue_free()
+			_level_label = null
+		return
+	if _level_label == null:
+		_level_label = Label.new()
+		_level_label.z_index = 30
+		_level_label.add_theme_font_size_override("font_size", 16)
+		_level_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.6))
+		_level_label.add_theme_color_override("font_outline_color", Color(0.2, 0.15, 0.05))
+		_level_label.add_theme_constant_override("outline_size", 5)
+		add_child(_level_label)
+	_level_label.text = str(level)
+	_level_label.position = Vector2(-10.0, -hex_size * 2.0)

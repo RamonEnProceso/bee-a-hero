@@ -12,6 +12,7 @@ extends Node2D
 @onready var wave_banner: Label = $UILayer/WaveBanner
 @onready var slots_label: Label = $UILayer/SlotsLabel
 @onready var free_bee_label: Label = $UILayer/FreeBeeLabel
+@onready var context_menu: ContextMenu = $UILayer/ContextMenu
 
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
@@ -50,13 +51,22 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Escape cierra el menú contextual.
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		context_menu.hide_menu()
+		return
+
 	# Drag & drop de construcción: agarrar una tarjeta arriba y soltar sobre el panal.
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			var type: int = build_menu.card_at(event.position)
 			if type >= 0 and _affordable(type):
 				dragging_type = type
+				context_menu.hide_menu()
 				_update_drag_preview()
+			else:
+				# No arrastramos: tocamos una construcción (o un hexágono vacío).
+				_select_at(hex_grid.get_global_mouse_position())
 		else:
 			if dragging_type >= 0:
 				var world: Vector2 = hex_grid.get_global_mouse_position()
@@ -64,6 +74,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				_end_drag()
 	elif event is InputEventMouseMotion and dragging_type >= 0:
 		_update_drag_preview()
+
+
+## Al hacer click (sin arrastrar) sobre una construcción muestra su menú;
+## sobre un hexágono vacío lo cierra.
+func _select_at(world: Vector2) -> void:
+	var structure = hex_grid.structure_at(hex_grid.cell_at_world(world))
+	if structure != null:
+		context_menu.show_for(structure)
+	else:
+		context_menu.hide_menu()
 
 
 ## Actualiza la vista previa: círculo de rango + celda destino + fantasma.
@@ -123,11 +143,14 @@ func _try_build(type: int, cell: Vector2i) -> void:
 	var def: Dictionary = Game.BUILD_DEFS[type]
 	var built_node: Node2D = hex_grid.build(type, cell)
 	if built_node != null:
-		# La torre común puede ser gratis si la guardería entregó una.
+		# La torre común puede ser gratis si la guardería entregó una (de su nivel).
+		var free_lvl := 0
 		if type == Game.BuildType.TOWER and Game.has_free_tower():
-			Game.consume_free_tower()
+			free_lvl = Game.consume_free_tower()
 		else:
 			Game.spend(def["cost"])
+		if free_lvl > 0 and built_node is Tower:
+			built_node.set_level(free_lvl)
 		# Las torres (y aliados) ocupan slots de abeja; las paredes no.
 		var cost: int = Game.slot_cost(type)
 		if cost > 0:

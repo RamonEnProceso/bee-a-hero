@@ -33,6 +33,8 @@ var materials: int = 500
 ## Torres comunes gratis acumuladas (las entrega la guardería al terminar
 ## cada oleada). Se consumen al colocar una torre sin pagar miel.
 var free_towers: int = 0
+## Nivel de cada torre gratis en cola (el frente es la próxima a consumirse).
+var _free_tower_levels: Array[int] = []
 
 ## Sistema de slots de abejas: cuántas "abejas-torre" podemos colocar.
 ## Al inicio solo se puede crear una; los edificios amplían esta capacidad.
@@ -53,6 +55,59 @@ var slot_capacity: int = 1
 var _slotted: Array[Node] = []
 ## Cuántos slots consume cada abeja colocada (las torres y aliados valen 1).
 var _slot_costs: Dictionary = {}
+
+## Costo de mejora para pasar de un nivel al siguiente (nivel 1→2 = 100, 2→3 = 200).
+const UPGRADE_COST := {
+	1: 100,
+	2: 200,
+}
+
+## Tipos que se pueden mejorar (3 niveles). Las paredes, trampas y la torre
+## doble solo se venden, no se mejoran.
+const UPGRADABLE := {
+	BuildType.BASE: true,
+	BuildType.GUARDERIA: true,
+	BuildType.CULTIVADORA: true,
+	BuildType.TOWER: true,
+	BuildType.GUARDIA: true,
+	BuildType.LONG_RANGE: true,
+}
+
+## Stats por nivel de cada tipo mejorable (nivel 1 = valor base).
+## Los multiplicadores (`*_mult`) se aplican sobre los stats base del nodo; los
+## valores absolutos (`slots`, `honey`, `towers`, `tower_level`) se usan directo.
+const LEVEL_STATS := {
+	BuildType.BASE: [
+		{ "slots": 4 },
+		{ "slots": 7 },
+		{ "slots": 13 },
+	],
+	BuildType.GUARDERIA: [
+		{ "towers": 1, "tower_level": 1 },
+		{ "towers": 1, "tower_level": 2 },
+		{ "towers": 2, "tower_level": 3 },
+	],
+	BuildType.CULTIVADORA: [
+		{ "honey": 100 },
+		{ "honey": 200 },
+		{ "honey": 350 },
+	],
+	BuildType.TOWER: [
+		{ "fire_mult": 1.0 },
+		{ "fire_mult": 0.7 },
+		{ "fire_mult": 0.5 },
+	],
+	BuildType.LONG_RANGE: [
+		{ "damage_mult": 1.0, "fire_mult": 1.0 },
+		{ "damage_mult": 3.0, "fire_mult": 1.0 },
+		{ "damage_mult": 5.0, "fire_mult": 0.75 },
+	],
+	BuildType.GUARDIA: [
+		{ "damage_mult": 1.0, "health_mult": 1.0 },
+		{ "damage_mult": 1.5, "health_mult": 1.5 },
+		{ "damage_mult": 2.0, "health_mult": 2.0 },
+	],
+}
 
 
 ## ¿El `type` de construcción consume slots de abeja?
@@ -149,16 +204,61 @@ func has_free_tower() -> bool:
 	return free_towers > 0
 
 
-## Entrega una torre gratis (la guardería la otorga al final de cada oleada).
-func grant_free_tower() -> void:
+## Entrega una torre gratis de `level` (la guardería la otorga al final de cada
+## oleada; a más nivel de guardería, torres de más nivel).
+func grant_free_tower(level: int = 1) -> void:
 	free_towers += 1
+	_free_tower_levels.append(level)
 	free_towers_changed.emit(free_towers)
 
 
-## Consume una torre gratis al colocarla (no se descuenta miel).
-func consume_free_tower() -> void:
+## Consume una torre gratis al colocarla y devuelve su nivel (1 por defecto).
+func consume_free_tower() -> int:
 	free_towers = maxi(0, free_towers - 1)
+	var lvl := 1
+	if not _free_tower_levels.is_empty():
+		lvl = _free_tower_levels.pop_front()
 	free_towers_changed.emit(free_towers)
+	return lvl
+
+
+## ¿El `type` se puede mejorar (tiene 3 niveles)?
+static func is_upgradable(type: int) -> bool:
+	return type in UPGRADABLE
+
+
+## Nivel máximo de un tipo (3 si es mejorable, 1 si no).
+static func max_level(type: int) -> int:
+	return 3 if is_upgradable(type) else 1
+
+
+## Costo para pasar de `level` a `level + 1` (0 si ya está al máximo).
+static func upgrade_cost(type: int, level: int) -> int:
+	if level >= max_level(type):
+		return 0
+	return UPGRADE_COST[level]
+
+
+## Lee un stat del nivel `level` de `type`. Devuelve `fallback` si no existe.
+static func level_stat(type: int, level: int, key: String, fallback):
+	if not LEVEL_STATS.has(type):
+		return fallback
+	var levels: Array = LEVEL_STATS[type]
+	var idx: int = clampi(level, 1, levels.size()) - 1
+	return levels[idx].get(key, fallback)
+
+
+## Total invertido en una construcción de `type` a nivel `level` (compra + mejoras).
+static func total_invested(type: int, level: int) -> int:
+	var total: int = BUILD_DEFS[type]["cost"]
+	for l in range(1, level):
+		total += UPGRADE_COST[l]
+	return total
+
+
+## Miel que devuelve vender una construcción: 3/8 de lo invertido en total.
+static func sell_value(type: int, level: int) -> int:
+	return int(round(float(total_invested(type, level)) * 3.0 / 8.0))
 
 
 func _ready() -> void:

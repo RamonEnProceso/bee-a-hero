@@ -5,6 +5,7 @@
 
 [node name="Tower" type="Node2D"]
 script = ExtResource("1_tower")
+build_type = 3
 projectile_scene = ExtResource("2_proj")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
