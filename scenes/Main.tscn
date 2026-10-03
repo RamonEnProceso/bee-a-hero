@@ -12,7 +12,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Projectile.tscn" id="10_proj"]
 [ext_resource type="PackedScene" path="res://scenes/SuicideBee.tscn" id="11_sbee"]
 [ext_resource type="PackedScene" path="res://scenes/BigWasp.tscn" id="12_bigwasp"]
-[ext_resource type="PackedScene" path="res://scenes/Hornet.tscn" id="13_hornet"]
+[ext_resource type="PackedScene" uid="uid://qpen5astlda0" path="res://scenes/Hornet.tscn" id="13_hornet"]
 [ext_resource type="PackedScene" path="res://scenes/Bird.tscn" id="14_bird"]
 [ext_resource type="PackedScene" path="res://scenes/Cat.tscn" id="15_cat"]
 [ext_resource type="PackedScene" path="res://scenes/Bear.tscn" id="16_bear"]
@@ -21,7 +21,6 @@
 [ext_resource type="PackedScene" path="res://scenes/TrapWall.tscn" id="19_trap"]
 [ext_resource type="PackedScene" path="res://scenes/DoubleTower.tscn" id="20_dtower"]
 [ext_resource type="PackedScene" path="res://scenes/BigTower.tscn" id="21_btower"]
-[ext_resource type="Texture2D" uid="uid://cacf1qqclgie7" path="res://textures/AbejaLaburante00.png" id="21_yxlcp"]
 
 [node name="Main" type="Node2D" unique_id=1867172931]
 script = ExtResource("1_main")
@@ -59,7 +58,6 @@ script = ExtResource("8_bee")
 projectile_scene = ExtResource("10_proj")
 
 [node name="Sprite2D" type="Sprite2D" parent="BuilderBee" unique_id=1120331755]
-texture = ExtResource("21_yxlcp")
 
 [node name="Camera2D" type="Camera2D" parent="BuilderBee" unique_id=1308290234]
 

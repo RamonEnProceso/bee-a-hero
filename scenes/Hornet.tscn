@@ -1,17 +1,17 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://qpen5astlda0"]
 
-[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" uid="uid://8m1ykw3awdu8" path="res://scripts/enemy.gd" id="1_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/Pickup.tscn" id="2_pickup"]
 
-[node name="Hornet" type="Node2D"]
+[node name="Hornet" type="Node2D" unique_id=510770231]
 script = ExtResource("1_enemy")
-pickup_scene = ExtResource("2_pickup")
 max_health = 9
 speed = 75.0
 damage = 2
 structure_damage = 3
 material_reward = 9
+pickup_scene = ExtResource("2_pickup")
 knockback_resistance = 0.95
 body_scale = 2.2
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=764331495]
