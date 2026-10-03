@@ -75,6 +75,25 @@ func cube_round(qf: float, rf: float) -> Vector2i:
 	return Vector2i(rq, rr)
 
 
+## Posición en coordenadas del mundo de una celda axial (tiene en cuenta el offset de la grilla).
+func world_position_of(q: int, r: int) -> Vector2:
+	return to_global(hex_to_pixel(q, r))
+
+
+## Celdas del anillo exterior (radio == grid_radius), para spawnear enemigos en el borde.
+func get_ring_cells() -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for q in range(-grid_radius, grid_radius + 1):
+		var r_min: int = maxi(-grid_radius, -q - grid_radius)
+		var r_max: int = mini(grid_radius, -q + grid_radius)
+		for r in range(r_min, r_max + 1):
+			# El "radio cúbico" de una celda es max(|q|, |r|, |q+r|).
+			var radius: int = maxi(absi(q), maxi(absi(r), absi(q + r)))
+			if radius == grid_radius:
+				cells.append(Vector2i(q, r))
+	return cells
+
+
 # ---------------------------------------------------------------------------
 # Dibujo.
 # ---------------------------------------------------------------------------
