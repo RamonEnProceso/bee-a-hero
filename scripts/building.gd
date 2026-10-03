@@ -55,7 +55,14 @@ func _shake() -> void:
 	_hit_tween.tween_property(sprite, "position", Vector2.ZERO, 0.035)
 
 
-## Al destruirse, libera sus celdas (los slots se restan en la Etapa 3).
+## Al destruirse libera sus celdas y resta sus slots, eliminando las últimas
+## abejas colocadas (LIFO) hasta entrar en la nueva capacidad.
 func die() -> void:
 	grid.remove_building(self)
+	var removed: Array[Node] = Game.decrease_capacity(slots_granted)
+	for node in removed:
+		if node is Tower and is_instance_valid(node):
+			node.die()
+		elif is_instance_valid(node):
+			node.queue_free()
 	queue_free()
