@@ -1,0 +1,12 @@
+[
+    {
+        "name":"Beerenice, la reina",
+        "contenido":["Recuerda...", "Cuantas más viviendas, más abejas.", "Cuantas más abejas, más defesas.", "Construye por nosotros. Proteje nuestra especie."],
+        "sprite":"[xxx]_idle.png"
+    },
+    {
+        "name":"Protagonista",
+        "contenido":["Bzzz bzzz"],
+        "sprite":"[xxx]_idle.png"
+    }
+]
