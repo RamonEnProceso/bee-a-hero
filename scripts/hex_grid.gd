@@ -10,9 +10,16 @@ extends Node2D
 @export var fill_color: Color = Color(0.95, 0.72, 0.20)
 @export var outline_color: Color = Color(0.55, 0.38, 0.10)
 @export var hover_color: Color = Color(1.0, 0.92, 0.45)
+## Escena de la pared que se construye al hacer click (Etapa 3).
+@export var wall_scene: PackedScene
+
+## Se emite cuando el jugador hace click izquierdo sobre una celda.
+signal cell_clicked(cell: Vector2i)
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
+# Paredes construidas: clave = celda (Vector2i), valor = nodo Wall.
+var walls: Dictionary = {}
 
 
 func _ready() -> void:
@@ -28,10 +35,10 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Al hacer click izquierdo, imprimimos la celda clickeada (útil para debug).
+	# Al hacer click izquierdo, avisamos qué celda se clickeó (la construye Main).
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var cell: Vector2i = pixel_to_hex(to_local(get_global_mouse_position()))
-		print("Celda clickeada: (q=", cell.x, ", r=", cell.y, ")")
+		cell_clicked.emit(cell)
 
 
 # ---------------------------------------------------------------------------
@@ -92,6 +99,47 @@ func get_ring_cells() -> Array[Vector2i]:
 			if radius == grid_radius:
 				cells.append(Vector2i(q, r))
 	return cells
+
+
+## Radio "cúbico" de una celda: max(|q|, |r|, |q+r|).
+func cube_radius(q: int, r: int) -> int:
+	return maxi(absi(q), maxi(absi(r), absi(q + r)))
+
+
+## Celda que contiene una posición del mundo (el enemigo la usa para detectar paredes).
+func cell_at_world(pos: Vector2) -> Vector2i:
+	return pixel_to_hex(to_local(pos))
+
+
+## Devuelve la pared en `cell`, o null si no hay.
+func wall_at(cell: Vector2i) -> Wall:
+	return walls.get(cell)
+
+
+## Construye una pared en `cell`. Devuelve null si la celda no es válida.
+func build_wall(cell: Vector2i) -> Wall:
+	if wall_scene == null:
+		return null
+	if walls.has(cell):
+		return null
+	if cell == Vector2i.ZERO:
+		return null  # la reina ocupa (0,0)
+	if cube_radius(cell.x, cell.y) >= grid_radius:
+		return null  # no construir en el borde donde spawnean enemigos
+
+	var wall: Wall = wall_scene.instantiate()
+	wall.grid = self
+	wall.cell = cell
+	wall.hex_size = hex_size
+	wall.position = hex_to_pixel(cell.x, cell.y)
+	walls[cell] = wall
+	add_child(wall)
+	return wall
+
+
+## Saca una pared del diccionario (la llama Wall._break al romperse).
+func remove_wall(cell: Vector2i) -> void:
+	walls.erase(cell)
 
 
 # ---------------------------------------------------------------------------

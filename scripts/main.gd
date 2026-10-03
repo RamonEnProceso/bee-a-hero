@@ -18,6 +18,13 @@ func _ready() -> void:
 	# Cuando la reina muere, perdimos.
 	queen.died.connect(_on_queen_died)
 
+	# Click en una celda -> construir una pared ahí (Etapa 3).
+	hex_grid.cell_clicked.connect(_on_cell_clicked)
+
+
+func _on_cell_clicked(cell: Vector2i) -> void:
+	hex_grid.build_wall(cell)
+
 
 func _on_queen_died() -> void:
 	game_over_label.visible = true

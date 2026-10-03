@@ -28,6 +28,7 @@ func _process(delta: float) -> void:
 func _spawn_enemy() -> void:
 	var enemy: Enemy = enemy_scene.instantiate()
 	enemy.target = queen
+	enemy.hex_grid = hex_grid
 
 	var ring: Array[Vector2i] = hex_grid.get_ring_cells()
 	var cell: Vector2i = ring[randi() % ring.size()]

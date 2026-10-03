@@ -1,16 +1,18 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/hex_grid.gd" id="2_grid"]
 [ext_resource type="Script" path="res://scripts/queen.gd" id="3_queen"]
 [ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="4_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/Enemy.tscn" id="5_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/Wall.tscn" id="6_wall"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
 [node name="HexGrid" type="Node2D" parent="."]
 script = ExtResource("2_grid")
+wall_scene = ExtResource("6_wall")
 
 [node name="Queen" type="Node2D" parent="."]
 script = ExtResource("3_queen")
