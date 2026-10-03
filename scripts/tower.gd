@@ -103,7 +103,8 @@ func _hit_flash() -> void:
 	_hit_tween.parallel().tween_property(sprite, "modulate", Color.WHITE, 0.15)
 
 
-## Al destruirse, se saca de la grilla para liberar la celda.
+## Al destruirse, se saca de la grilla para liberar la celda y el slot.
 func die() -> void:
 	grid.remove_tower(self)
+	Game.unregister_slotted(self)
 	queue_free()

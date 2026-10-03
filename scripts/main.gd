@@ -89,6 +89,9 @@ func _can_build(type: int, cell: Vector2i) -> bool:
 		return false
 	if not hex_grid.can_place_build(type, cell):
 		return false
+	# Sin slots libres no se pueden colocar más abejas-torre.
+	if Game.consumes_slot(type) and not Game.has_slot():
+		return false
 	# Cercanía a la abeja y no sobre ella.
 	var bee_cell: Vector2i = hex_grid.cell_at_world(builder_bee.global_position)
 	if cell == bee_cell:
@@ -102,9 +105,12 @@ func _try_build(type: int, cell: Vector2i) -> void:
 	if not _can_build(type, cell):
 		return
 	var def: Dictionary = Game.BUILD_DEFS[type]
-	var built: bool = hex_grid.build(type, cell) != null
-	if built:
+	var built_node: Node2D = hex_grid.build(type, cell)
+	if built_node != null:
 		Game.spend(def["cost"])
+		# Las torres (y aliados) ocupan un slot de abeja; las paredes no.
+		if Game.consumes_slot(type):
+			Game.register_slotted(built_node)
 
 
 ## Coloca un anillo de abejas suicidas alrededor de la reina, cada una mirando hacia afuera.
