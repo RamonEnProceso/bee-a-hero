@@ -28,6 +28,9 @@
 [ext_resource type="PackedScene" path="res://scenes/Guardia.tscn" id="27_guardia"]
 [ext_resource type="PackedScene" path="res://scenes/LongRange.tscn" id="28_lrange"]
 [ext_resource type="PackedScene" path="res://scenes/Piranas.tscn" id="29_piranas"]
+[ext_resource type="PackedScene" path="res://scenes/BombWasp.tscn" id="30_bomb"]
+[ext_resource type="PackedScene" path="res://scenes/Hormiga.tscn" id="31_hormiga"]
+[ext_resource type="PackedScene" path="res://scenes/Polilla.tscn" id="32_polilla"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.1, 0.07, 0.04, 0.62)
@@ -71,6 +74,9 @@ hornet_scene = ExtResource("13_hornet")
 smoke_scene = ExtResource("17_smoke")
 cat_scene = ExtResource("15_cat")
 bear_scene = ExtResource("16_bear")
+bomb_wasp_scene = ExtResource("30_bomb")
+hormiga_scene = ExtResource("31_hormiga")
+polilla_scene = ExtResource("32_polilla")
 enemies_per_wave = 2
 time_between_waves = 10.0
 

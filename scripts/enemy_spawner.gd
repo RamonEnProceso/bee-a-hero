@@ -20,6 +20,12 @@ extends Node2D
 @export var cat_scene: PackedScene
 ## Pata de oso que roba miel (desde la oleada 5).
 @export var bear_scene: PackedScene
+## Avispa bomba: explota al morir dañando aliados cercanos (desde la oleada 3).
+@export var bomb_wasp_scene: PackedScene
+## Hormiga: roba la miel sin recolectar y huye (desde la oleada 4).
+@export var hormiga_scene: PackedScene
+## Polilla: pone huevos dentro de la colmena (desde la oleada 5).
+@export var polilla_scene: PackedScene
 
 ## Enemigos de la primera oleada (pocos, para dar tiempo a construir).
 @export var base_enemies: int = 3
@@ -121,6 +127,15 @@ func _wave_recipe(w: int) -> Array[PackedScene]:
 	# Pata de oso desde la oleada 5.
 	if w >= 5 and bear_scene != null:
 		list.append(bear_scene)
+	# Avispa bomba desde la oleada 3.
+	if w >= 3 and bomb_wasp_scene != null:
+		list.append(bomb_wasp_scene)
+	# Hormiga desde la oleada 4.
+	if w >= 4 and hormiga_scene != null:
+		list.append(hormiga_scene)
+	# Polilla desde la oleada 5.
+	if w >= 5 and polilla_scene != null:
+		list.append(polilla_scene)
 	list.shuffle()
 	return list
 

@@ -29,6 +29,10 @@ static func preload_all() -> void:
 	guardia()
 	long_range()
 	piranas()
+	bomb_wasp()
+	hormiga()
+	polilla()
+	egg()
 	building()
 	guarderia()
 	cultivadora()
@@ -146,6 +150,57 @@ static func bear_paw() -> Texture2D:
 	if not _cache.has("bear_paw"):
 		_cache["bear_paw"] = _circle(15, Color(0.45, 0.3, 0.2), 40)
 	return _cache["bear_paw"]
+
+
+## Avispa bomba: cuerpo oscuro con chispa naranja (explota al morir).
+static func bomb_wasp() -> Texture2D:
+	if not _cache.has("bomb_wasp"):
+		var size := 40
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		_paint_dot(img, 20.0, 20.0, 13.0, Color(0.5, 0.08, 0.08))
+		_paint_dot(img, 27.0, 13.0, 4.0, Color(1.0, 0.55, 0.1))
+		_cache["bomb_wasp"] = ImageTexture.create_from_image(img)
+	return _cache["bomb_wasp"]
+
+
+## Hormiga: tres segmentos marrones en fila (roba miel y huye).
+static func hormiga() -> Texture2D:
+	if not _cache.has("hormiga"):
+		var size := 40
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		var brown := Color(0.35, 0.22, 0.1)
+		_paint_dot(img, 12.0, 20.0, 6.0, brown)
+		_paint_dot(img, 20.0, 20.0, 5.0, brown)
+		_paint_dot(img, 28.0, 20.0, 4.0, brown)
+		_cache["hormiga"] = ImageTexture.create_from_image(img)
+	return _cache["hormiga"]
+
+
+## Polilla: dos alas grises y cuerpo oscuro (pone huevos en la colmena).
+static func polilla() -> Texture2D:
+	if not _cache.has("polilla"):
+		var size := 40
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		var wing := Color(0.72, 0.68, 0.78)
+		_paint_dot(img, 14.0, 20.0, 10.0, wing)
+		_paint_dot(img, 26.0, 20.0, 10.0, wing)
+		_paint_dot(img, 20.0, 20.0, 4.0, Color(0.4, 0.35, 0.42))
+		_cache["polilla"] = ImageTexture.create_from_image(img)
+	return _cache["polilla"]
+
+
+## Huevo de polilla: óvalo crema que late hasta eclosionar.
+static func egg() -> Texture2D:
+	if not _cache.has("egg"):
+		var size := 32
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		_paint_dot(img, 16.0, 16.0, 8.0, Color(0.95, 0.93, 0.82))
+		_cache["egg"] = ImageTexture.create_from_image(img)
+	return _cache["egg"]
 
 
 static func tower() -> Texture2D:
@@ -286,6 +341,14 @@ static func _circle(radius: int, color: Color, size: int) -> ImageTexture:
 			if Vector2(x + 0.5, y + 0.5).distance_to(c) <= radius:
 				img.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(img)
+
+
+## Pinta un círculo relleno sobre `img` (para componer sprites de varios colores).
+static func _paint_dot(img: Image, cx: float, cy: float, r: float, color: Color) -> void:
+	for y in img.get_height():
+		for x in img.get_width():
+			if Vector2(x + 0.5, y + 0.5).distance_to(Vector2(cx, cy)) <= r:
+				img.set_pixel(x, y, color)
 
 
 static func _polygon(points: PackedVector2Array, color: Color, size: int) -> ImageTexture:
