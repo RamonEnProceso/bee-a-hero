@@ -5,6 +5,8 @@ extends Node
 signal materials_changed(value: int)
 ## Se emite cuando cambia la cantidad de abejas colocadas o la capacidad.
 signal slots_changed(used: int, capacity: int)
+## Se emite cuando cambia la cantidad de torres gratis disponibles.
+signal free_towers_changed(count: int)
 
 ## Tipos de estructura que se pueden construir.
 enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER, BASE, GUARDERIA, CULTIVADORA, GUARDIA, LONG_RANGE, PIRANAS }
@@ -27,9 +29,12 @@ const BUILD_DEFS := {
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
-## 130 = 3 torres (120) + algo de defensa. La mecánica principal son las
-## paredes y trampas baratas; las torres (y el cañón) son el golpe caro.
-var materials: int = 130
+## 200 = 1 base (80) + 3 torres (120). Arrancamos con un edificio y tres torres.
+var materials: int = 200
+
+## Torres comunes gratis acumuladas (las entrega la guardería al terminar
+## cada oleada). Se consumen al colocar una torre sin pagar miel.
+var free_towers: int = 0
 
 ## Sistema de slots de abejas: cuántas "abejas-torre" podemos colocar.
 ## Al inicio solo se puede crear una; los edificios amplían esta capacidad.
@@ -141,6 +146,23 @@ func spend(cost: int) -> void:
 func gain(amount: int) -> void:
 	materials += amount
 	materials_changed.emit(materials)
+
+
+## ¿Queda al menos una torre gratis por colocar?
+func has_free_tower() -> bool:
+	return free_towers > 0
+
+
+## Entrega una torre gratis (la guardería la otorga al final de cada oleada).
+func grant_free_tower() -> void:
+	free_towers += 1
+	free_towers_changed.emit(free_towers)
+
+
+## Consume una torre gratis al colocarla (no se descuenta miel).
+func consume_free_tower() -> void:
+	free_towers = maxi(0, free_towers - 1)
+	free_towers_changed.emit(free_towers)
 
 
 func _ready() -> void:

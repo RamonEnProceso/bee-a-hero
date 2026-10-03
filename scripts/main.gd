@@ -37,6 +37,7 @@ func _ready() -> void:
 	spawner.wave_cleared.connect(_on_wave_cleared)
 	Game.materials_changed.connect(_on_materials_changed)
 	Game.slots_changed.connect(_on_slots_changed)
+	Game.free_towers_changed.connect(_on_free_towers_changed)
 
 	_spawn_suicide_bees()
 
@@ -49,7 +50,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			var type: int = build_menu.card_at(event.position)
-			if type >= 0 and Game.can_afford(Game.BUILD_DEFS[type]["cost"]):
+			if type >= 0 and _affordable(type):
 				dragging_type = type
 				_update_drag_preview()
 		else:
@@ -85,11 +86,18 @@ func _end_drag() -> void:
 	hex_grid.queue_redraw()
 
 
+## ¿Se puede pagar `type`? La torre común sale gratis si la guardería entregó una.
+func _affordable(type: int) -> bool:
+	if type == Game.BuildType.TOWER and Game.has_free_tower():
+		return true
+	return Game.can_afford(Game.BUILD_DEFS[type]["cost"])
+
+
 func _can_build(type: int, cell: Vector2i) -> bool:
 	if type < 0:
 		return false
 	var def: Dictionary = Game.BUILD_DEFS[type]
-	if not Game.can_afford(def["cost"]):
+	if not _affordable(type):
 		return false
 	if not hex_grid.can_place_build(type, cell):
 		return false
@@ -111,7 +119,11 @@ func _try_build(type: int, cell: Vector2i) -> void:
 	var def: Dictionary = Game.BUILD_DEFS[type]
 	var built_node: Node2D = hex_grid.build(type, cell)
 	if built_node != null:
-		Game.spend(def["cost"])
+		# La torre común puede ser gratis si la guardería entregó una.
+		if type == Game.BuildType.TOWER and Game.has_free_tower():
+			Game.consume_free_tower()
+		else:
+			Game.spend(def["cost"])
 		# Las torres (y aliados) ocupan slots de abeja; las paredes no.
 		var cost: int = Game.slot_cost(type)
 		if cost > 0:
@@ -142,6 +154,11 @@ func _on_materials_changed(_value: int) -> void:
 func _on_slots_changed(used: int, capacity: int) -> void:
 	slots_label.text = "Abejas: %d/%d" % [used, capacity]
 	build_menu.queue_redraw()  # actualiza el brillo de las tarjetas
+
+
+## Actualiza el menú cuando cambian las torres gratis (la tarjeta Torre se ve "GRATIS").
+func _on_free_towers_changed(_count: int) -> void:
+	build_menu.queue_redraw()
 
 
 func _on_wave_started(wave: int) -> void:

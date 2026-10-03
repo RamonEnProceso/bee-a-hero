@@ -15,7 +15,7 @@ const TOOLTIPS := {
 	Game.BuildType.DOUBLE_TOWER: "Dispara el doble de rápido",
 	Game.BuildType.BIG_TOWER: "Tiros fuertes de largo alcance",
 	Game.BuildType.BASE: "Desbloquea 3 abejas más",
-	Game.BuildType.GUARDERIA: "Regala una torre por oleada",
+	Game.BuildType.GUARDERIA: "Torre gratis para colocar por oleada",
 	Game.BuildType.CULTIVADORA: "Genera 100 de miel por oleada",
 	Game.BuildType.GUARDIA: "Pelea cuerpo a cuerpo",
 	Game.BuildType.LONG_RANGE: "Dispara lejos, lento",
@@ -85,7 +85,8 @@ func _draw() -> void:
 		var def: Dictionary = Game.BUILD_DEFS[type]
 		var name: String = def["name"]
 		var cost: int = def["cost"]
-		var afford: bool = Game.can_afford(cost)
+		var is_free: bool = type == Game.BuildType.TOWER and Game.has_free_tower()
+		var afford: bool = is_free or Game.can_afford(cost)
 		var out_of_slots: bool = not Game.has_slots(Game.slot_cost(type))
 		var dim: bool = not afford or out_of_slots
 
@@ -108,8 +109,11 @@ func _draw() -> void:
 		# Nombre y precio abajo (centrados).
 		var name_color := Color(1, 1, 1) if not dim else Color(0.55, 0.55, 0.55)
 		draw_string(font, Vector2(r.position.x, r.position.y + 54.0), name, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 12, name_color)
-		var cost_color := Color(1.0, 0.9, 0.4) if afford else Color(0.7, 0.3, 0.3)
-		draw_string(font, Vector2(r.position.x, r.position.y + 72.0), "$%d" % cost, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 14, cost_color)
+		var cost_text: String = "$%d" % cost
+		if is_free:
+			cost_text = "GRATIS" if Game.free_towers <= 1 else "GRATIS x%d" % Game.free_towers
+		var cost_color := Color(0.4, 0.9, 0.5) if is_free else (Color(1.0, 0.9, 0.4) if afford else Color(0.7, 0.3, 0.3))
+		draw_string(font, Vector2(r.position.x, r.position.y + 72.0), cost_text, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 14, cost_color)
 
 	# Tooltip del tipo bajo el mouse (a la izquierda de la tarjeta, para no salirse).
 	if _hovered >= 0 and TOOLTIPS.has(_hovered):
