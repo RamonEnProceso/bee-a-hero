@@ -13,6 +13,10 @@ extends Node2D
 
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
+## Escena de la abeja suicida que se coloca en el anillo defensivo.
+@export var suicide_bee_scene: PackedScene
+## Radio cúbico del anillo donde se colocan las abejas suicidas (alrededor de la reina).
+@export var suicide_bee_ring: int = 2
 
 # Tipo de tarjeta que se está arrastrando desde el menú, o -1 si no.
 var dragging_type: int = -1
@@ -30,6 +34,8 @@ func _ready() -> void:
 	queen.died.connect(_on_queen_died)
 	spawner.wave_started.connect(_on_wave_started)
 	Game.materials_changed.connect(_on_materials_changed)
+
+	_spawn_suicide_bees()
 
 	_on_materials_changed(Game.materials)
 
@@ -101,6 +107,19 @@ func _try_build(type: int, cell: Vector2i) -> void:
 		built = hex_grid.build_tower(cell) != null
 	if built:
 		Game.spend(def["cost"])
+
+
+## Coloca un anillo de abejas suicidas alrededor de la reina, cada una mirando hacia afuera.
+func _spawn_suicide_bees() -> void:
+	if suicide_bee_scene == null:
+		return
+	var center: Vector2 = hex_grid.world_position_of(0, 0)
+	for cell in hex_grid.get_ring_cells(suicide_bee_ring):
+		var b: SuicideBee = suicide_bee_scene.instantiate()
+		var pos: Vector2 = hex_grid.world_position_of(cell.x, cell.y)
+		b.direction = (pos - center).normalized()  # contraria al centro
+		add_child(b)
+		b.global_position = pos
 
 
 func _on_materials_changed(_value: int) -> void:

@@ -13,6 +13,7 @@ static var _cache: Dictionary = {}
 static func preload_all() -> void:
 	queen()
 	bee()
+	suicide_bee()
 	enemy()
 	tower()
 	wall()
@@ -41,8 +42,15 @@ static func pickup() -> Texture2D:
 
 static func bee() -> Texture2D:
 	if not _cache.has("bee"):
-		_cache["bee"] = _bee_texture()
+		_cache["bee"] = _bee_texture(32, 10.0)
 	return _cache["bee"]
+
+
+## Abeja suicida: igual pero más grande (se coloca en el anillo defensivo).
+static func suicide_bee() -> Texture2D:
+	if not _cache.has("suicide_bee"):
+		_cache["suicide_bee"] = _bee_texture(48, 15.0)
+	return _cache["suicide_bee"]
 
 
 static func enemy() -> Texture2D:
@@ -99,24 +107,24 @@ static func _polygon(points: PackedVector2Array, color: Color, size: int) -> Ima
 	return ImageTexture.create_from_image(img)
 
 
-## Abeja: círculo amarillo con rayas oscuras (visto desde arriba).
-static func _bee_texture() -> ImageTexture:
-	var size := 32
+## Abeja: círculo amarillo con rayas oscuras (visto desde arriba). `radius` escala el cuerpo.
+static func _bee_texture(size: int, radius: float) -> ImageTexture:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	var c := Vector2(16.0, 16.0)
-	var radius := 10.0
+	var c := Vector2(size / 2.0, size / 2.0)
 	for y in size:
 		for x in size:
 			var p := Vector2(x + 0.5, y + 0.5)
 			if p.distance_to(c) <= radius:
 				img.set_pixel(x, y, Color(1.0, 0.85, 0.2))
-	# Rayas oscuras.
+	# Rayas oscuras (proporcionales al radio del cuerpo).
+	var stripe_half: float = radius * 0.2
+	var stripe_gap: float = radius * 0.45
 	for y in size:
 		for x in size:
 			var p := Vector2(x + 0.5, y + 0.5)
 			if p.distance_to(c) <= radius:
 				var dx := p.x - c.x
-				if absf(dx) < 2.0 or absf(dx - 4.5) < 2.0 or absf(dx + 4.5) < 2.0:
+				if absf(dx) < stripe_half or absf(dx - stripe_gap) < stripe_half or absf(dx + stripe_gap) < stripe_half:
 					img.set_pixel(x, y, Color(0.25, 0.18, 0.05))
 	return ImageTexture.create_from_image(img)

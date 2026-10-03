@@ -89,14 +89,16 @@ func world_position_of(q: int, r: int) -> Vector2:
 	return to_global(hex_to_pixel(q, r))
 
 
-## Celdas del anillo exterior (radio == grid_radius), para spawnear enemigos en el borde.
-func get_ring_cells() -> Array[Vector2i]:
+## Celdas del anillo de radio `radius` (por defecto el borde exterior). Sirve para
+## spawnear enemigos en el borde y para colocar las abejas suicidas alrededor de la reina.
+func get_ring_cells(radius: int = -1) -> Array[Vector2i]:
+	var rad: int = grid_radius if radius < 0 else radius
 	var cells: Array[Vector2i] = []
-	for q in range(-grid_radius, grid_radius + 1):
-		var r_min: int = maxi(-grid_radius, -q - grid_radius)
-		var r_max: int = mini(grid_radius, -q + grid_radius)
+	for q in range(-rad, rad + 1):
+		var r_min: int = maxi(-rad, -q - rad)
+		var r_max: int = mini(rad, -q + rad)
 		for r in range(r_min, r_max + 1):
-			if cube_radius(q, r) == grid_radius:
+			if cube_radius(q, r) == rad:
 				cells.append(Vector2i(q, r))
 	return cells
 

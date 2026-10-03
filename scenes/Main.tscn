@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/hex_grid.gd" id="2_grid"]
@@ -10,9 +10,11 @@
 [ext_resource type="Script" path="res://scripts/builder_bee.gd" id="8_bee"]
 [ext_resource type="Script" path="res://scripts/build_menu.gd" id="9_menu"]
 [ext_resource type="PackedScene" path="res://scenes/Projectile.tscn" id="10_proj"]
+[ext_resource type="PackedScene" path="res://scenes/SuicideBee.tscn" id="11_sbee"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
+suicide_bee_scene = ExtResource("11_sbee")
 
 [node name="HexGrid" type="Node2D" parent="."]
 script = ExtResource("2_grid")
