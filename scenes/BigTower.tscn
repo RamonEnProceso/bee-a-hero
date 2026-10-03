@@ -9,6 +9,6 @@ projectile_scene = ExtResource("2_proj")
 range_radius = 230.0
 fire_interval = 1.6
 damage = 6
-max_health = 12
+max_health = 16
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

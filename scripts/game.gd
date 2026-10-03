@@ -17,15 +17,15 @@ const BUILD_DEFS := {
 	BuildType.WALL: { "name": "Pared", "cost": 5 },
 	BuildType.REINFORCED: { "name": "Pared reforzada", "cost": 15 },
 	BuildType.TRAP: { "name": "Pared trampa", "cost": 6 },
-	BuildType.TOWER: { "name": "Torre", "cost": 40 },
+	BuildType.TOWER: { "name": "Torre", "cost": 30 },
 	BuildType.DOUBLE_TOWER: { "name": "Torre doble", "cost": 90 },
 	BuildType.BIG_TOWER: { "name": "Cañón", "cost": 200 },
-	BuildType.BASE: { "name": "Base", "cost": 80 },
+	BuildType.BASE: { "name": "Base", "cost": 70 },
 	BuildType.GUARDERIA: { "name": "Guardería", "cost": 100 },
 	BuildType.CULTIVADORA: { "name": "Cultivadora", "cost": 140 },
-	BuildType.GUARDIA: { "name": "Guardia", "cost": 50 },
-	BuildType.LONG_RANGE: { "name": "Largo alcance", "cost": 80 },
-	BuildType.PIRANAS: { "name": "Pirañas", "cost": 70 },
+	BuildType.GUARDIA: { "name": "Guardia", "cost": 40 },
+	BuildType.LONG_RANGE: { "name": "Largo alcance", "cost": 50 },
+	BuildType.PIRANAS: { "name": "Pirañas", "cost": 50 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).

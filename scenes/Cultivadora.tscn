@@ -4,7 +4,7 @@
 
 [node name="Cultivadora" type="Node2D"]
 script = ExtResource("1_cultivadora")
-max_health = 10
+max_health = 12
 slots_granted = 3
 build_rounds = 1
 
