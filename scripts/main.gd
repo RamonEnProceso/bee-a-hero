@@ -6,7 +6,7 @@ extends Node2D
 @onready var spawner: EnemySpawner = $EnemySpawner
 @onready var builder_bee: BuilderBee = $BuilderBee
 @onready var build_menu: BuildMenu = $UILayer/BuildMenu
-@onready var material_label: Label = $UILayer/MaterialLabel
+@onready var material_label: Label = $UILayer/MaterialLabel/Number
 @onready var game_over_label: Label = $UILayer/GameOverLabel
 @onready var wave_label: Label = $UILayer/WaveLabel
 @onready var wave_banner: Label = $UILayer/WaveBanner
@@ -173,7 +173,7 @@ func _spawn_suicide_bees() -> void:
 
 
 func _on_materials_changed(_value: int) -> void:
-	material_label.text = "Miel: %d" % Game.materials
+	material_label.text = "%d" % Game.materials  # solo el número, el icono está al lado
 	build_menu.queue_redraw()  # actualiza qué tarjetas se ven asequibles
 
 

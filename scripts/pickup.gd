@@ -15,13 +15,19 @@ extends Node2D
 ## Tiempo máximo de vida, para que no queden gotas viejas por ahí.
 @export var lifetime: float = 20.0
 
+## Textura real de la partícula de miel que suelta el enemigo (PNG de 64px).
+const HONEY_TEXTURE: Texture2D = preload("res://textures/Miel_particula.png")
+## Escala del sprite (el PNG viene a 64px, hay que achicarlo).
+@export var sprite_scale: float = 0.25
+
 var _bee: Node2D  # la abeja protagonista (grupo "player")
 var _t: float = 0.0  # para el bobbing
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
-	sprite.texture = Art.pickup()
+	sprite.texture = HONEY_TEXTURE
+	sprite.scale = Vector2(sprite_scale, sprite_scale)
 	add_to_group("pickups")
 	_bee = get_tree().get_first_node_in_group("player")
 

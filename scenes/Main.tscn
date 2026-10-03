@@ -30,6 +30,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Hormiga.tscn" id="31_hormiga"]
 [ext_resource type="PackedScene" path="res://scenes/Polilla.tscn" id="32_polilla"]
 [ext_resource type="Script" uid="uid://c0gb0cwu7y22y" path="res://scripts/context_menu.gd" id="33_cmenu"]
+[ext_resource type="Texture2D" path="res://textures/Miel_HUD.png" id="40_mielhud"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.1, 0.07, 0.04, 0.62)
@@ -45,7 +46,7 @@ suicide_bee_ring = 1
 
 [node name="HexGrid" type="Node2D" parent="." unique_id=205318142]
 script = ExtResource("2_grid")
-outline_color = Color(0.8745098, 0.6313726, 0.11764706, 1)
+outline_color = Color(0.95, 0.59596664, 0.13299999, 1)
 wall_scene = ExtResource("6_wall")
 tower_scene = ExtResource("7_tower")
 reinforced_wall_scene = ExtResource("18_rwall")
@@ -94,16 +95,27 @@ offset_right = 150.0
 offset_bottom = 52.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
 
-[node name="MaterialLabel" type="Label" parent="UILayer" unique_id=954979554]
+[node name="MaterialLabel" type="HBoxContainer" parent="UILayer" unique_id=954979554]
 offset_left = 16.0
 offset_top = 12.0
 offset_right = 150.0
 offset_bottom = 48.0
+theme_override_constants/separation = 6
+
+[node name="Icon" type="TextureRect" parent="UILayer/MaterialLabel"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+texture = ExtResource("40_mielhud")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Number" type="Label" parent="UILayer/MaterialLabel"]
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.35, 0.24, 0.06, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
-text = "Miel: 0"
+text = "0"
 
 [node name="SlotsCard" type="Panel" parent="UILayer" unique_id=435307222]
 offset_left = 8.0
@@ -151,7 +163,9 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("9_menu")
 
-[node name="ContextMenu" type="Control" parent="UILayer"]
+[node name="ContextMenu" type="Control" parent="UILayer" unique_id=1841918648]
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("33_cmenu")
 
 [node name="GameOverLabel" type="Label" parent="UILayer" unique_id=3875102]
