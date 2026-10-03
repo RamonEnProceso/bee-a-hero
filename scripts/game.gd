@@ -7,7 +7,7 @@ signal materials_changed(value: int)
 signal slots_changed(used: int, capacity: int)
 
 ## Tipos de estructura que se pueden construir.
-enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER }
+enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER, BASE }
 
 ## Definiciones de lo construible: nombre y costo.
 ## El orden de las claves es el orden en que aparecen las tarjetas del menú.
@@ -18,6 +18,7 @@ const BUILD_DEFS := {
 	BuildType.TOWER: { "name": "Torre", "cost": 40 },
 	BuildType.DOUBLE_TOWER: { "name": "Torre doble", "cost": 90 },
 	BuildType.BIG_TOWER: { "name": "Cañón", "cost": 200 },
+	BuildType.BASE: { "name": "Base", "cost": 80 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).

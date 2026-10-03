@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://scenes/BigTower.tscn" id="21_btower"]
 [ext_resource type="PackedScene" path="res://scenes/SpiralWasp.tscn" id="22_swasp"]
 [ext_resource type="PackedScene" path="res://scenes/ShooterWasp.tscn" id="23_shooter"]
+[ext_resource type="PackedScene" path="res://scenes/Building.tscn" id="24_building"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.1, 0.07, 0.04, 0.62)
@@ -43,6 +44,7 @@ reinforced_wall_scene = ExtResource("18_rwall")
 trap_wall_scene = ExtResource("19_trap")
 double_tower_scene = ExtResource("20_dtower")
 big_tower_scene = ExtResource("21_btower")
+building_scene = ExtResource("24_building")
 
 [node name="Queen" type="Node2D" parent="." unique_id=593898601]
 script = ExtResource("3_queen")

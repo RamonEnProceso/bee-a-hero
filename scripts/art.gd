@@ -26,6 +26,7 @@ static func preload_all() -> void:
 	trap()
 	double_tower()
 	big_tower()
+	building()
 	projectile()
 	pickup()
 
@@ -45,6 +46,8 @@ static func build_icon(type: int) -> Texture2D:
 			return double_tower()
 		Game.BuildType.BIG_TOWER:
 			return big_tower()
+		Game.BuildType.BASE:
+			return building()
 	return wall()
 
 
@@ -190,6 +193,32 @@ static func big_tower() -> Texture2D:
 		_cache["big_tower"] = ImageTexture.create_from_image(img)
 	return _cache["big_tower"]
 
+
+## Edificio base: hexágono dorado con puerta oscura (colmena/ciudadela).
+static func building() -> Texture2D:
+	if not _cache.has("building"):
+		var size := 128
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		var c := Vector2(size / 2.0, size / 2.0)
+		var golden := Color(1.0, 0.78, 0.25)
+		# Hexágono exterior (cuerpo del edificio).
+		var pts := PackedVector2Array()
+		for i in 6:
+			var a := deg_to_rad(60.0 * i - 30.0)
+			pts.append(c + Vector2(cos(a), sin(a)) * 56.0)
+		for y in size:
+			for x in size:
+				var p := Vector2(x + 0.5, y + 0.5)
+				if Geometry2D.is_point_in_polygon(p, pts):
+					img.set_pixel(x, y, golden)
+		# Puerta (rectángulo oscuro al pie).
+		for y in size:
+			for x in size:
+				if absf(x - c.x) <= 16.0 and y >= c.y + 8.0 and y <= c.y + 50.0:
+					img.set_pixel(x, y, Color(0.25, 0.16, 0.05))
+		_cache["building"] = ImageTexture.create_from_image(img)
+	return _cache["building"]
 
 # --- Generadores internos (no cachean; los públicos sí) ---
 

@@ -22,6 +22,8 @@ extends Node2D
 @export var double_tower_scene: PackedScene
 ## Escena del cañón (ocupa 2x2 hexágonos, tiros potentes).
 @export var big_tower_scene: PackedScene
+## Escena del edificio base (ocupa 3 hexágonos, habilita 3 slots).
+@export var building_scene: PackedScene
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
@@ -31,9 +33,13 @@ var walls: Dictionary = {}
 var towers: Dictionary = {}
 # Trampas (pared trampa): clave = celda (Vector2i), valor = nodo TrapWall. No bloquean.
 var traps: Dictionary = {}
+# Edificios: clave = celda (Vector2i), valor = nodo Building. Ocupan 3 celdas cada uno.
+var buildings: Dictionary = {}
 
 ## Desplazamientos que ocupa el cañón (un "2x2" de hexágonos contiguos).
 const BIG_TOWER_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(1, -1)]
+## Desplazamientos que ocupa un edificio base (triángulo de 3 hexágonos contiguos).
+const BUILDING_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, -1)]
 
 # --- Vista previa mientras arrastramos una tarjeta (main.gd la actualiza) ---
 var show_build_range: bool = false
@@ -145,7 +151,7 @@ func cell_at_world(pos: Vector2) -> Vector2i:
 
 ## ¿Se puede construir en `cell`? (libre, no es el centro y no es el borde).
 func can_place(cell: Vector2i) -> bool:
-	if walls.has(cell) or towers.has(cell) or traps.has(cell):
+	if walls.has(cell) or towers.has(cell) or traps.has(cell) or buildings.has(cell):
 		return false
 	if cell == Vector2i.ZERO:
 		return false  # la reina ocupa (0,0)
@@ -158,6 +164,11 @@ func can_place(cell: Vector2i) -> bool:
 func can_place_build(type: int, cell: Vector2i) -> bool:
 	if type == Game.BuildType.BIG_TOWER:
 		for c in _big_tower_cells(cell):
+			if not can_place(c):
+				return false
+		return true
+	if type == Game.BuildType.BASE:
+		for c in _building_cells(cell):
 			if not can_place(c):
 				return false
 		return true
@@ -181,6 +192,8 @@ func structure_at(cell: Vector2i):
 		return walls[cell]
 	if towers.has(cell):
 		return towers[cell]
+	if buildings.has(cell):
+		return buildings[cell]
 	return null
 
 
@@ -199,6 +212,8 @@ func build(type: int, cell: Vector2i) -> Node2D:
 			return build_double_tower(cell)
 		Game.BuildType.BIG_TOWER:
 			return build_big_tower(cell)
+		Game.BuildType.BASE:
+			return build_building(cell)
 	return null
 
 
@@ -312,6 +327,41 @@ func build_big_tower(cell: Vector2i) -> Tower:
 	return tower
 
 
+## Construye un edificio base (3 hexágonos) anclado en `anchor`. El nodo queda
+## centrado en el centro geométrico del footprint y se anota bajo sus 3 celdas.
+func build_building(anchor: Vector2i) -> Building:
+	if building_scene == null:
+		return null
+	if not can_place_build(Game.BuildType.BASE, anchor):
+		return null
+
+	var cells := _building_cells(anchor)
+	var building: Building = building_scene.instantiate()
+	building.grid = self
+	building.cell = anchor
+	building.hex_size = hex_size
+	building.cells = cells
+	building.position = _footprint_center(cells)
+	for c in cells:
+		buildings[c] = building
+	add_child(building)
+	return building
+
+
+## Saca un edificio del diccionario (la llama Building.die al destruirse).
+func remove_building(building: Building) -> void:
+	for c in building.cells:
+		buildings.erase(c)
+
+
+## Las celdas (axiales) que ocupa un edificio base anclado en `anchor`.
+func _building_cells(anchor: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for d in BUILDING_FOOTPRINT:
+		out.append(anchor + d)
+	return out
+
+
 ## Saca una torre del diccionario (la llama Tower.die al destruirse). Borra todas
 ## las celdas que ocupa (una torre normal ocupa 1, el cañón 4).
 func remove_tower(tower: Tower) -> void:
@@ -358,9 +408,12 @@ func _draw() -> void:
 	# Vista previa: celda(s) destino (verde/rojo) + fantasma siguiendo el mouse.
 	if preview_texture != null:
 		var cc: Color = Color(0.2, 0.9, 0.3, 0.5) if preview_valid else Color(0.9, 0.2, 0.2, 0.5)
-		# El cañón pinta su footprint completo de 2x2; el resto una sola celda.
+		# El cañón pinta su footprint 2x2, el edificio sus 3 celdas; el resto una sola.
 		if preview_type == Game.BuildType.BIG_TOWER:
 			for c in _big_tower_cells(preview_cell):
+				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
+		elif preview_type == Game.BuildType.BASE:
+			for c in _building_cells(preview_cell):
 				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
 		else:
 			_draw_hexagon(hex_to_pixel(preview_cell.x, preview_cell.y), cc)
@@ -368,6 +421,8 @@ func _draw() -> void:
 		var s: float = hex_size * 1.8
 		if preview_type == Game.BuildType.BIG_TOWER:
 			s = hex_size * 4.5
+		elif preview_type == Game.BuildType.BASE:
+			s = hex_size * 3.6
 		var mp: Vector2 = to_local(preview_mouse_world)
 		draw_texture_rect(preview_texture, Rect2(mp - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, 0.7))
 
