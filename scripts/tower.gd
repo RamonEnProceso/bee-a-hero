@@ -28,8 +28,6 @@ var level: int = 1
 var _base_fire_interval: float
 var _base_damage: int
 var _base_max_health: int
-## Etiqueta del nivel (solo nivel 2 y 3).
-var _level_label: Label
 
 
 func _ready() -> void:
@@ -38,9 +36,8 @@ func _ready() -> void:
 	_base_max_health = max_health
 	health = max_health
 	_apply_level_stats()
-	sprite.texture = _texture()
+	_refresh_level_visual()
 	Fx.squash(sprite)
-	_refresh_level_indicator()
 
 
 ## Textura de la torre (la doble devuelve la suya).
@@ -57,11 +54,6 @@ func _process(delta: float) -> void:
 
 	# Apuntamos hacia el enemigo más cercano.
 	rotation = (target.global_position - global_position).angle()
-	# El número de nivel no gira con la torre: lo contra-rotamos para que quede
-	# derecho y en una posición fija sobre ella.
-	if _level_label != null:
-		_level_label.rotation = -rotation
-		_level_label.position = Vector2(-8.0, -hex_size * 1.6).rotated(-rotation)
 
 	if fire_cooldown <= 0.0:
 		_shoot(target)
@@ -164,7 +156,7 @@ func upgrade() -> bool:
 	Game.spend(upgrade_cost())
 	level += 1
 	_apply_level_stats()
-	_refresh_level_indicator()
+	_refresh_level_visual()
 	Sfx.upgrade()
 	Fx.burst(get_parent(), global_position, Color(0.5, 1.0, 0.7), 14)
 	return true
@@ -188,7 +180,7 @@ func _apply_level_stats() -> void:
 func set_level(lvl: int) -> void:
 	level = clampi(lvl, 1, Game.max_level(build_type))
 	_apply_level_stats()
-	_refresh_level_indicator()
+	_refresh_level_visual()
 
 
 ## Vende la torre: devuelve 3/8 de lo invertido y la retira.
@@ -200,20 +192,6 @@ func sell() -> void:
 	die()
 
 
-## Muestra el nivel actual sobre la torre (nivel 1 no muestra nada).
-func _refresh_level_indicator() -> void:
-	if level <= 1:
-		if _level_label != null:
-			_level_label.queue_free()
-			_level_label = null
-		return
-	if _level_label == null:
-		_level_label = Label.new()
-		_level_label.z_index = 30
-		_level_label.add_theme_font_size_override("font_size", 12)
-		_level_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.6))
-		_level_label.add_theme_color_override("font_outline_color", Color(0.2, 0.15, 0.05))
-		_level_label.add_theme_constant_override("outline_size", 4)
-		add_child(_level_label)
-	_level_label.text = str(level)
-	_level_label.position = Vector2(-8.0, -hex_size * 1.6)
+## Aplica la textura con el tinte del nivel actual: el sprite cambia al mejorar.
+func _refresh_level_visual() -> void:
+	sprite.texture = Art.leveled(_texture(), level)

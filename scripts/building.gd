@@ -53,16 +53,13 @@ const MALLET_PIVOT := Vector2(1.4, 0.2)
 @export var build_type: int = 5  # Game.BuildType.BASE
 ## Nivel de mejora actual (1 a 3).
 var level: int = 1
-## Etiqueta que muestra el nivel sobre el edificio (solo nivel 2 y 3).
-var _level_label: Label
 
 
 func _ready() -> void:
 	health = max_health
-	sprite.texture = _texture()
+	_refresh_level_visual()
 	add_to_group("buildings")
 	Fx.squash(sprite)
-	_refresh_level_indicator()
 	_construction_left = build_rounds
 	if build_rounds <= 0:
 		_finish_construction()
@@ -257,7 +254,7 @@ func upgrade() -> bool:
 	Game.spend(upgrade_cost())
 	level += 1
 	_apply_level_stats()
-	_refresh_level_indicator()
+	_refresh_level_visual()
 	Sfx.upgrade()
 	Fx.burst(get_parent(), global_position, Color(0.5, 1.0, 0.7), 18)
 	return true
@@ -282,20 +279,6 @@ func sell() -> void:
 	_teardown(false)
 
 
-## Muestra el nivel actual sobre el edificio (nivel 1 no muestra nada).
-func _refresh_level_indicator() -> void:
-	if level <= 1:
-		if _level_label != null:
-			_level_label.queue_free()
-			_level_label = null
-		return
-	if _level_label == null:
-		_level_label = Label.new()
-		_level_label.z_index = 30
-		_level_label.add_theme_font_size_override("font_size", 16)
-		_level_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.6))
-		_level_label.add_theme_color_override("font_outline_color", Color(0.2, 0.15, 0.05))
-		_level_label.add_theme_constant_override("outline_size", 5)
-		add_child(_level_label)
-	_level_label.text = str(level)
-	_level_label.position = Vector2(-10.0, -hex_size * 2.0)
+## Aplica la textura con el tinte del nivel actual: el sprite cambia al mejorar.
+func _refresh_level_visual() -> void:
+	sprite.texture = Art.leveled(_texture(), level)

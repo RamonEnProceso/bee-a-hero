@@ -64,6 +64,25 @@ static func build_icon(type: int) -> Texture2D:
 	return wall()
 
 
+## Devuelve `base` teñida de dorado según el nivel (1 = igual, 2 = dorado suave,
+## 3 = dorado intenso). Así el sprite de cada construcción cambia al mejorar, sin
+## necesidad de dibujar un número encima.
+static func leveled(base: Texture2D, level: int) -> Texture2D:
+	if level <= 1:
+		return base
+	var img: Image = base.get_image()
+	if img == null:
+		return base
+	var gold := Color(1.0, 0.9, 0.55)
+	var amount: float = 0.3 if level == 2 else 0.55
+	for y in img.get_height():
+		for x in img.get_width():
+			var c: Color = img.get_pixel(x, y)
+			if c.a > 0.0:
+				img.set_pixel(x, y, c.lerp(gold, amount))
+	return ImageTexture.create_from_image(img)
+
+
 static func queen() -> Texture2D:
 	if not _cache.has("queen"):
 		_cache["queen"] = _circle(24, Color(1.0, 0.84, 0.25), 64)
