@@ -67,6 +67,7 @@ func _update_drag_preview() -> void:
 	hex_grid.build_range_px = build_range * hex_grid.hex_size * sqrt(3.0)
 	hex_grid.preview_mouse_world = world
 	hex_grid.preview_cell = cell
+	hex_grid.preview_type = dragging_type
 	hex_grid.preview_valid = _can_build(dragging_type, cell)
 	hex_grid.preview_texture = Art.build_icon(dragging_type)
 	hex_grid.queue_redraw()
@@ -76,6 +77,7 @@ func _end_drag() -> void:
 	dragging_type = -1
 	hex_grid.show_build_range = false
 	hex_grid.preview_texture = null
+	hex_grid.preview_type = -1
 	hex_grid.queue_redraw()
 
 
@@ -85,7 +87,7 @@ func _can_build(type: int, cell: Vector2i) -> bool:
 	var def: Dictionary = Game.BUILD_DEFS[type]
 	if not Game.can_afford(def["cost"]):
 		return false
-	if not hex_grid.can_place(cell):
+	if not hex_grid.can_place_build(type, cell):
 		return false
 	# Cercanía a la abeja y no sobre ella.
 	var bee_cell: Vector2i = hex_grid.cell_at_world(builder_bee.global_position)

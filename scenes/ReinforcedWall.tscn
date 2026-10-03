@@ -4,6 +4,6 @@
 
 [node name="ReinforcedWall" type="Node2D"]
 script = ExtResource("1_rwall")
-max_health = 20
+max_health = 15
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

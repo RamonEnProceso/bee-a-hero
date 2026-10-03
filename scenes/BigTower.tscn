@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/big_tower.gd" id="1_btower"]
+[ext_resource type="PackedScene" path="res://scenes/Projectile.tscn" id="2_proj"]
+
+[node name="BigTower" type="Node2D"]
+script = ExtResource("1_btower")
+projectile_scene = ExtResource("2_proj")
+range_radius = 230.0
+fire_interval = 1.6
+damage = 6
+max_health = 12
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

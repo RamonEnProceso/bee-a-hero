@@ -21,7 +21,9 @@ static func preload_all() -> void:
 	tower()
 	wall()
 	reinforced_wall()
-	spiky_wall()
+	trap()
+	double_tower()
+	big_tower()
 	projectile()
 	pickup()
 
@@ -35,8 +37,12 @@ static func build_icon(type: int) -> Texture2D:
 			return tower()
 		Game.BuildType.REINFORCED:
 			return reinforced_wall()
-		Game.BuildType.SPIKY:
-			return spiky_wall()
+		Game.BuildType.TRAP:
+			return trap()
+		Game.BuildType.DOUBLE_TOWER:
+			return double_tower()
+		Game.BuildType.BIG_TOWER:
+			return big_tower()
 	return wall()
 
 
@@ -126,11 +132,42 @@ static func reinforced_wall() -> Texture2D:
 	return _cache["reinforced_wall"]
 
 
-## Pared de púas: rojiza (devuelve daño al que la golpea).
-static func spiky_wall() -> Texture2D:
-	if not _cache.has("spiky_wall"):
-		_cache["spiky_wall"] = _wall_texture(Color(0.6, 0.26, 0.32))
-	return _cache["spiky_wall"]
+## Pared trampa: estrella de pinchos (como los de Bloons). Se consume al tocarla.
+static func trap() -> Texture2D:
+	if not _cache.has("trap"):
+		_cache["trap"] = _star_texture(8, 30.0, 14.0, Color(0.35, 0.33, 0.42), 64)
+	return _cache["trap"]
+
+
+## Torre doble: dos aguijones apuntando al mismo lado.
+static func double_tower() -> Texture2D:
+	if not _cache.has("double_tower"):
+		var polys: Array = [
+			PackedVector2Array([Vector2(30, 10), Vector2(2, 2), Vector2(2, 18)]),
+			PackedVector2Array([Vector2(30, 22), Vector2(2, 14), Vector2(2, 30)]),
+		]
+		_cache["double_tower"] = _polygons(polys, Color(0.9, 0.5, 0.1), 32)
+	return _cache["double_tower"]
+
+
+## Cañón: cuerpo oscuro + cañón de acero (ocupa 2x2 hexágonos).
+static func big_tower() -> Texture2D:
+	if not _cache.has("big_tower"):
+		var size := 128
+		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+		img.fill(Color(0, 0, 0, 0))
+		var body_c := Vector2(48, 64)
+		var body_color := Color(0.25, 0.24, 0.28)
+		var barrel_color := Color(0.5, 0.52, 0.6)
+		for y in size:
+			for x in size:
+				var p := Vector2(x + 0.5, y + 0.5)
+				if p.distance_to(body_c) <= 34.0:
+					img.set_pixel(x, y, body_color)
+				if p.x >= 64.0 and p.x <= 122.0 and absf(p.y - 64.0) <= 12.0:
+					img.set_pixel(x, y, barrel_color)
+		_cache["big_tower"] = ImageTexture.create_from_image(img)
+	return _cache["big_tower"]
 
 
 # --- Generadores internos (no cachean; los públicos sí) ---
@@ -154,6 +191,31 @@ static func _polygon(points: PackedVector2Array, color: Color, size: int) -> Ima
 			if Geometry2D.is_point_in_polygon(Vector2(x + 0.5, y + 0.5), points):
 				img.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(img)
+
+
+## Varios polígonos del mismo color (ej. los dos aguijones de la torre doble).
+static func _polygons(polys: Array, color: Color, size: int) -> ImageTexture:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in size:
+		for x in size:
+			var p := Vector2(x + 0.5, y + 0.5)
+			for poly in polys:
+				if Geometry2D.is_point_in_polygon(p, poly):
+					img.set_pixel(x, y, color)
+					break
+	return ImageTexture.create_from_image(img)
+
+
+## Estrella de `spikes` puntas (pinchos de la trampa): alterna radio exterior/interior.
+static func _star_texture(spikes: int, outer: float, inner: float, color: Color, size: int) -> ImageTexture:
+	var pts := PackedVector2Array()
+	var center := Vector2(size / 2.0, size / 2.0)
+	for i in spikes * 2:
+		var a: float = deg_to_rad(90.0 + float(i) * 180.0 / spikes)
+		var r: float = outer if i % 2 == 0 else inner
+		pts.append(center + Vector2(cos(a), sin(a)) * r)
+	return _polygon(pts, color, size)
 
 
 ## Hexágono pointy-top que rellena la celda (los subtipos de pared usan su color).

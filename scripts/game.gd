@@ -5,20 +5,22 @@ extends Node
 signal materials_changed(value: int)
 
 ## Tipos de estructura que se pueden construir.
-enum BuildType { WALL, TOWER, REINFORCED, SPIKY }
+enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER }
 
 ## Definiciones de lo construible: nombre y costo.
 ## El orden de las claves es el orden en que aparecen las tarjetas del menú.
 const BUILD_DEFS := {
 	BuildType.WALL: { "name": "Pared", "cost": 5 },
-	BuildType.TOWER: { "name": "Torre", "cost": 80 },
 	BuildType.REINFORCED: { "name": "Pared reforzada", "cost": 15 },
-	BuildType.SPIKY: { "name": "Pared de púas", "cost": 10 },
+	BuildType.TRAP: { "name": "Pared trampa", "cost": 6 },
+	BuildType.TOWER: { "name": "Torre", "cost": 50 },
+	BuildType.DOUBLE_TOWER: { "name": "Torre doble", "cost": 90 },
+	BuildType.BIG_TOWER: { "name": "Cañón", "cost": 200 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
-## 130 = colchón inicial: alcanza para 1 torre (80) + 10 paredes (50).
-## Las torres caras empujan a jugar a base de paredes, no de torretas.
+## 130 = 2 torres (100) + algo de defensa. La mecánica principal son las
+## paredes y trampas baratas; las torres (y el cañón) son el golpe caro.
 var materials: int = 130
 
 

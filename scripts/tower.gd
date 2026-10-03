@@ -11,6 +11,8 @@ extends Node2D
 
 var grid: HexGrid
 var cell: Vector2i
+## Celdas que ocupa esta torre (1 para las normales, 4 para el cañón).
+var cells: Array[Vector2i] = []
 var hex_size: float = 32.0
 
 var health: int
@@ -40,21 +42,34 @@ func _process(delta: float) -> void:
 
 ## Busca el enemigo más cercano dentro del rango (o null si no hay).
 func _nearest_enemy() -> Enemy:
-	var best: Enemy = null
-	var best_dist: float = INF
+	var list := _enemies_in_range()
+	if list.is_empty():
+		return null
+	return list[0]
+
+
+## Enemigos vivos dentro del rango, del más cercano al más lejano.
+func _enemies_in_range() -> Array[Enemy]:
+	var list: Array[Enemy] = []
 	for node in get_tree().get_nodes_in_group("enemies"):
 		var e := node as Enemy
-		if e == null:
+		if e == null or e.dead:
 			continue
-		var dist: float = global_position.distance_to(e.global_position)
-		if dist <= range_radius and dist < best_dist:
-			best_dist = dist
-			best = e
-	return best
+		if global_position.distance_to(e.global_position) <= range_radius:
+			list.append(e)
+	list.sort_custom(func(a: Enemy, b: Enemy) -> bool:
+		return global_position.distance_to(a.global_position) < global_position.distance_to(b.global_position))
+	return list
 
 
 ## Dispara un proyectil hacia el objetivo.
 func _shoot(target: Enemy) -> void:
+	_spawn_projectile(target)
+
+
+## Crea el proyectil que viaja hacia `target`. Las subclases lo sobrescriben
+## (la torre doble dispara dos, el cañón un tiro grande).
+func _spawn_projectile(target: Enemy) -> void:
 	var p: Projectile = projectile_scene.instantiate()
 	p.target = target
 	p.damage = damage
@@ -71,5 +86,5 @@ func take_damage(amount: int, _attacker: Enemy = null) -> void:
 
 ## Al destruirse, se saca de la grilla para liberar la celda.
 func die() -> void:
-	grid.remove_tower(cell)
+	grid.remove_tower(self)
 	queue_free()
