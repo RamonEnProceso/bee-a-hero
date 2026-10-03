@@ -7,7 +7,7 @@ signal materials_changed(value: int)
 signal slots_changed(used: int, capacity: int)
 
 ## Tipos de estructura que se pueden construir.
-enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER, BASE, GUARDERIA, CULTIVADORA }
+enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER, BASE, GUARDERIA, CULTIVADORA, GUARDIA, LONG_RANGE, PIRANAS }
 
 ## Definiciones de lo construible: nombre y costo.
 ## El orden de las claves es el orden en que aparecen las tarjetas del menú.
@@ -21,6 +21,9 @@ const BUILD_DEFS := {
 	BuildType.BASE: { "name": "Base", "cost": 80 },
 	BuildType.GUARDERIA: { "name": "Guardería", "cost": 120 },
 	BuildType.CULTIVADORA: { "name": "Cultivadora", "cost": 160 },
+	BuildType.GUARDIA: { "name": "Guardia", "cost": 50 },
+	BuildType.LONG_RANGE: { "name": "Largo alcance", "cost": 80 },
+	BuildType.PIRANAS: { "name": "Pirañas", "cost": 70 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
@@ -32,36 +35,65 @@ var materials: int = 130
 ## Al inicio solo se puede crear una; los edificios amplían esta capacidad.
 ## (Las paredes y trampas NO consumen slots: son libres.)
 
-## Tipos que ocupan un slot de abeja (las torres; más adelante los aliados).
-const SLOTTED_TYPES := [BuildType.TOWER, BuildType.DOUBLE_TOWER, BuildType.BIG_TOWER]
+## Cuántos slots de abeja consume cada tipo (las torres y aliados normales, 1;
+## las pirañas ocupan 4). Las paredes y trampas NO consumen: no están acá.
+const SLOT_COST := {
+	BuildType.TOWER: 1,
+	BuildType.DOUBLE_TOWER: 1,
+	BuildType.BIG_TOWER: 1,
+	BuildType.GUARDIA: 1,
+	BuildType.LONG_RANGE: 1,
+	BuildType.PIRANAS: 4,
+}
 
 ## Capacidad máxima de abejas colocables. Arranca en 1.
 var slot_capacity: int = 1
 ## Abejas colocadas en orden (primera en entrar, última en salir). Guarda los nodos.
 var _slotted: Array[Node] = []
+## Cuántos slots consume cada abeja colocada (la piraña vale 4).
+var _slot_costs: Dictionary = {}
 
 
-## ¿El `type` de construcción consume un slot de abeja?
+## ¿El `type` de construcción consume slots de abeja?
 static func consumes_slot(type: int) -> bool:
-	return type in SLOTTED_TYPES
+	return type in SLOT_COST
 
 
-## ¿Queda un slot libre para colocar una abeja?
+## Cuántos slots consume el `type` (0 para paredes/trampas/edificios).
+static func slot_cost(type: int) -> int:
+	return SLOT_COST.get(type, 0)
+
+
+## Slots ocupados en total (suma el costo de cada abeja colocada).
+func _slots_used() -> int:
+	var total := 0
+	for cost in _slot_costs.values():
+		total += cost
+	return total
+
+
+## ¿Queda al menos un slot libre?
 func has_slot() -> bool:
-	return _slotted.size() < slot_capacity
+	return has_slots(1)
+
+
+## ¿Entran `count` slots libres?
+func has_slots(count: int) -> bool:
+	return _slots_used() + count <= slot_capacity
 
 
 ## Cantidad de slots ocupados.
 func slots_used() -> int:
-	return _slotted.size()
+	return _slots_used()
 
 
-## Registra una abeja recién colocada. Devuelve false si no hay slot libre.
-func register_slotted(node: Node) -> bool:
-	if _slotted.size() >= slot_capacity:
+## Registra una abeja recién colocada (con su costo en slots). Devuelve false si no entra.
+func register_slotted(node: Node, cost: int = 1) -> bool:
+	if _slots_used() + cost > slot_capacity:
 		return false
 	_slotted.append(node)
-	slots_changed.emit(_slotted.size(), slot_capacity)
+	_slot_costs[node] = cost
+	slots_changed.emit(_slots_used(), slot_capacity)
 	return true
 
 
@@ -69,13 +101,14 @@ func register_slotted(node: Node) -> bool:
 func unregister_slotted(node: Node) -> void:
 	if _slotted.has(node):
 		_slotted.erase(node)
-		slots_changed.emit(_slotted.size(), slot_capacity)
+		_slot_costs.erase(node)
+		slots_changed.emit(_slots_used(), slot_capacity)
 
 
 ## Amplía la capacidad en `amount` slots (los edificios suman 3).
 func increase_capacity(amount: int) -> void:
 	slot_capacity += amount
-	slots_changed.emit(_slotted.size(), slot_capacity)
+	slots_changed.emit(_slots_used(), slot_capacity)
 
 
 ## Reduce la capacidad en `amount` y elimina las últimas abejas hasta entrar (LIFO).
@@ -88,9 +121,11 @@ func decrease_capacity(amount: int) -> Array[Node]:
 ## hacia adelante. Devuelve las que quedaron fuera.
 func _trim_to_capacity() -> Array[Node]:
 	var removed: Array[Node] = []
-	while _slotted.size() > slot_capacity:
-		removed.append(_slotted.pop_back())
-	slots_changed.emit(_slotted.size(), slot_capacity)
+	while _slots_used() > slot_capacity and not _slotted.is_empty():
+		var node: Node = _slotted.pop_back()
+		_slot_costs.erase(node)
+		removed.append(node)
+	slots_changed.emit(_slots_used(), slot_capacity)
 	return removed
 
 

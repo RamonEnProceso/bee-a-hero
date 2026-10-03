@@ -17,6 +17,9 @@ const TOOLTIPS := {
 	Game.BuildType.BASE: "Desbloquea 3 abejas más",
 	Game.BuildType.GUARDERIA: "Regala una torre por oleada",
 	Game.BuildType.CULTIVADORA: "Genera 100 de miel por oleada",
+	Game.BuildType.GUARDIA: "Pelea cuerpo a cuerpo",
+	Game.BuildType.LONG_RANGE: "Dispara lejos, lento",
+	Game.BuildType.PIRANAS: "Enjambre veloz (4 slots)",
 }
 
 var _cards: Dictionary = {}  # type -> Rect2
@@ -83,7 +86,7 @@ func _draw() -> void:
 		var name: String = def["name"]
 		var cost: int = def["cost"]
 		var afford: bool = Game.can_afford(cost)
-		var out_of_slots: bool = Game.consumes_slot(type) and not Game.has_slot()
+		var out_of_slots: bool = not Game.has_slots(Game.slot_cost(type))
 		var dim: bool = not afford or out_of_slots
 
 		# Fondo de la tarjeta.

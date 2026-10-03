@@ -25,6 +25,9 @@
 [ext_resource type="PackedScene" path="res://scenes/Building.tscn" id="24_building"]
 [ext_resource type="PackedScene" path="res://scenes/Guarderia.tscn" id="25_guarderia"]
 [ext_resource type="PackedScene" path="res://scenes/Cultivadora.tscn" id="26_cultivadora"]
+[ext_resource type="PackedScene" path="res://scenes/Guardia.tscn" id="27_guardia"]
+[ext_resource type="PackedScene" path="res://scenes/LongRange.tscn" id="28_lrange"]
+[ext_resource type="PackedScene" path="res://scenes/Piranas.tscn" id="29_piranas"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.1, 0.07, 0.04, 0.62)
@@ -49,6 +52,9 @@ big_tower_scene = ExtResource("21_btower")
 building_scene = ExtResource("24_building")
 guarderia_scene = ExtResource("25_guarderia")
 cultivadora_scene = ExtResource("26_cultivadora")
+guardia_scene = ExtResource("27_guardia")
+long_range_scene = ExtResource("28_lrange")
+piranas_scene = ExtResource("29_piranas")
 
 [node name="Queen" type="Node2D" parent="." unique_id=593898601]
 script = ExtResource("3_queen")

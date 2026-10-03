@@ -28,6 +28,12 @@ extends Node2D
 @export var guarderia_scene: PackedScene
 ## Escena de la cultivadora (genera miel por oleada).
 @export var cultivadora_scene: PackedScene
+## Escena del aliado guardia (cuerpo a cuerpo).
+@export var guardia_scene: PackedScene
+## Escena del aliado de largo alcance (francotirador).
+@export var long_range_scene: PackedScene
+## Escena del aliado pirañas (enjambre de 4 slots, corto alcance).
+@export var piranas_scene: PackedScene
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
@@ -231,6 +237,12 @@ func build(type: int, cell: Vector2i) -> Node2D:
 			return build_guarderia(cell)
 		Game.BuildType.CULTIVADORA:
 			return build_cultivadora(cell)
+		Game.BuildType.GUARDIA:
+			return build_guardia(cell)
+		Game.BuildType.LONG_RANGE:
+			return build_long_range(cell)
+		Game.BuildType.PIRANAS:
+			return build_piranas(cell)
 	return null
 
 
@@ -342,6 +354,40 @@ func build_big_tower(cell: Vector2i) -> Tower:
 		towers[c] = tower
 	add_child(tower)
 	return tower
+
+
+## Construye un aliado (guardia, largo alcance o pirañas) en `cell`.
+## Como extienden Tower, se guardan en `towers` (los enemigos los atacan).
+func _build_ally_with(scene: PackedScene, cell: Vector2i) -> Ally:
+	if scene == null:
+		return null
+	if not can_place(cell):
+		return null
+
+	var ally: Ally = scene.instantiate()
+	ally.grid = self
+	ally.cell = cell
+	ally.hex_size = hex_size
+	ally.cells = [cell]
+	ally.position = hex_to_pixel(cell.x, cell.y)
+	towers[cell] = ally
+	add_child(ally)
+	return ally
+
+
+## Construye un guardia en `cell`.
+func build_guardia(cell: Vector2i) -> Ally:
+	return _build_ally_with(guardia_scene, cell)
+
+
+## Construye un aliado de largo alcance en `cell`.
+func build_long_range(cell: Vector2i) -> Ally:
+	return _build_ally_with(long_range_scene, cell)
+
+
+## Construye unas pirañas en `cell` (ocupa 1 hex pero 4 slots).
+func build_piranas(cell: Vector2i) -> Ally:
+	return _build_ally_with(piranas_scene, cell)
 
 
 ## Construye un edificio base en `anchor`.

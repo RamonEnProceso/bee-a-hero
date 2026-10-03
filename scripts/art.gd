@@ -26,6 +26,9 @@ static func preload_all() -> void:
 	trap()
 	double_tower()
 	big_tower()
+	guardia()
+	long_range()
+	piranas()
 	building()
 	guarderia()
 	cultivadora()
@@ -54,6 +57,12 @@ static func build_icon(type: int) -> Texture2D:
 			return guarderia()
 		Game.BuildType.CULTIVADORA:
 			return cultivadora()
+		Game.BuildType.GUARDIA:
+			return guardia()
+		Game.BuildType.LONG_RANGE:
+			return long_range()
+		Game.BuildType.PIRANAS:
+			return piranas()
 	return wall()
 
 
@@ -200,6 +209,27 @@ static func big_tower() -> Texture2D:
 	return _cache["big_tower"]
 
 
+## Guardia: abeja gorda naranja, cuerpo a cuerpo.
+static func guardia() -> Texture2D:
+	if not _cache.has("guardia"):
+		_cache["guardia"] = _bee_texture_colored(48, 14.0, Color(0.95, 0.62, 0.12), Color(0.3, 0.18, 0.05))
+	return _cache["guardia"]
+
+
+## Largo alcance: abeja celeste y fina, dispara aguijones.
+static func long_range() -> Texture2D:
+	if not _cache.has("long_range"):
+		_cache["long_range"] = _bee_texture_colored(40, 10.0, Color(0.55, 0.8, 1.0), Color(0.1, 0.22, 0.35))
+	return _cache["long_range"]
+
+
+## Pirañas: enjambre chico rojo (ocupa 4 slots, corto alcance).
+static func piranas() -> Texture2D:
+	if not _cache.has("piranas"):
+		_cache["piranas"] = _bee_texture_colored(36, 8.0, Color(0.9, 0.25, 0.2), Color(0.35, 0.1, 0.08))
+	return _cache["piranas"]
+
+
 ## Edificio base: hexágono dorado con puerta oscura (colmena/ciudadela).
 static func building() -> Texture2D:
 	if not _cache.has("building"):
@@ -306,6 +336,11 @@ static func _wall_texture(color: Color) -> ImageTexture:
 
 ## Abeja: círculo amarillo con rayas oscuras (visto desde arriba). `radius` escala el cuerpo.
 static func _bee_texture(size: int, radius: float) -> ImageTexture:
+	return _bee_texture_colored(size, radius, Color(1.0, 0.85, 0.2), Color(0.25, 0.18, 0.05))
+
+
+## Variante coloreada de la abeja (los aliados usan su propio color).
+static func _bee_texture_colored(size: int, radius: float, body: Color, stripe: Color) -> ImageTexture:
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 	var c := Vector2(size / 2.0, size / 2.0)
@@ -313,7 +348,7 @@ static func _bee_texture(size: int, radius: float) -> ImageTexture:
 		for x in size:
 			var p := Vector2(x + 0.5, y + 0.5)
 			if p.distance_to(c) <= radius:
-				img.set_pixel(x, y, Color(1.0, 0.85, 0.2))
+				img.set_pixel(x, y, body)
 	# Rayas oscuras (proporcionales al radio del cuerpo).
 	var stripe_half: float = radius * 0.2
 	var stripe_gap: float = radius * 0.45
@@ -323,5 +358,5 @@ static func _bee_texture(size: int, radius: float) -> ImageTexture:
 			if p.distance_to(c) <= radius:
 				var dx := p.x - c.x
 				if absf(dx) < stripe_half or absf(dx - stripe_gap) < stripe_half or absf(dx + stripe_gap) < stripe_half:
-					img.set_pixel(x, y, Color(0.25, 0.18, 0.05))
+					img.set_pixel(x, y, stripe)
 	return ImageTexture.create_from_image(img)
