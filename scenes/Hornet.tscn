@@ -7,10 +7,10 @@
 script = ExtResource("1_enemy")
 pickup_scene = ExtResource("2_pickup")
 max_health = 9
-speed = 48.0
+speed = 75.0
 damage = 2
 structure_damage = 3
-material_reward = 15
+material_reward = 9
 knockback_resistance = 0.95
 body_scale = 2.2
 

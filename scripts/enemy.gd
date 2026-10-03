@@ -6,14 +6,14 @@ extends Node2D
 ## y cambian textura, vida, velocidad y comportamiento.
 
 @export var max_health: int = 3
-@export var speed: float = 60.0
+@export var speed: float = 100.0
 ## Daño que le hace a la reina al llegar.
 @export var damage: int = 1
 ## Daño que le hace a las estructuras (paredes/torres) por golpe.
 @export var structure_damage: int = 1
 @export var attack_interval: float = 0.6
 ## Material que suelta al ser destruido.
-@export var material_reward: int = 5
+@export var material_reward: int = 3
 ## Escena de la gota de miel que suelta al morir (la abeja la recolecta).
 @export var pickup_scene: PackedScene
 ## Empuje que recibe por cada proyectil que le pega (px de velocidad).

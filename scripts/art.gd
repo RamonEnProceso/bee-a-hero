@@ -81,13 +81,11 @@ static func enemy() -> Texture2D:
 	return _cache["enemy"]
 
 
-## Pájaro: triángulo celeste pequeño (entra, picotea torres y se va).
+## Pájaro ENORME: solo "entra" su cabeza (pico largo + cabeza), picotea y se va.
+## Ocupa ~128 px ≈ 2 hexágonos de largo.
 static func bird() -> Texture2D:
 	if not _cache.has("bird"):
-		var pts := PackedVector2Array([
-			Vector2(22, 12), Vector2(4, 4), Vector2(4, 20),
-		])
-		_cache["bird"] = _polygon(pts, Color(0.55, 0.7, 0.95), 24)
+		_cache["bird"] = _bird_texture()
 	return _cache["bird"]
 
 
@@ -189,4 +187,31 @@ static func _bee_texture(size: int, radius: float) -> ImageTexture:
 				var dx := p.x - c.x
 				if absf(dx) < stripe_half or absf(dx - stripe_gap) < stripe_half or absf(dx + stripe_gap) < stripe_half:
 					img.set_pixel(x, y, Color(0.25, 0.18, 0.05))
+	return ImageTexture.create_from_image(img)
+
+
+## Cabeza de pájaro gigante: cabeza celeste + pico largo naranja + ojo.
+## Apunta hacia +X (el sprite rota para mirar al objetivo, como el resto).
+static func _bird_texture() -> ImageTexture:
+	var size := 128
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+
+	var head_color := Color(0.55, 0.7, 0.95)
+	var beak_color := Color(0.95, 0.62, 0.15)
+	var eye_color := Color(0.1, 0.1, 0.15)
+	var head_c := Vector2(44, 64)
+	# Pico: triángulo que sobresale hacia +X.
+	var beak := PackedVector2Array([Vector2(126, 64), Vector2(48, 40), Vector2(48, 88)])
+
+	for y in size:
+		for x in size:
+			var p := Vector2(x + 0.5, y + 0.5)
+			if p.distance_to(head_c) <= 42.0:
+				img.set_pixel(x, y, head_color)
+			if p.distance_to(Vector2(56, 48)) <= 8.0:
+				img.set_pixel(x, y, eye_color)
+			if Geometry2D.is_point_in_polygon(p, beak):
+				img.set_pixel(x, y, beak_color)
+
 	return ImageTexture.create_from_image(img)

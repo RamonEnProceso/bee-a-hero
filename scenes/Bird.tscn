@@ -7,8 +7,8 @@
 script = ExtResource("1_bird")
 pickup_scene = ExtResource("2_pickup")
 max_health = 2
-speed = 140.0
+speed = 160.0
 damage = 1
-material_reward = 3
+material_reward = 2
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

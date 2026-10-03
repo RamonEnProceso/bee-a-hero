@@ -6,23 +6,23 @@ extends Node2D
 
 ## Escena de la avispa normal.
 @export var enemy_scene: PackedScene
-## Avispa más grande (desde la oleada 2, resistente al empuje).
+## Avispa más grande (desde la oleada 1, resistente al empuje).
 @export var big_wasp_scene: PackedScene
-## Pájaro que picotea torres (desde la oleada 3).
+## Pájaro que picotea torres (desde la oleada 2).
 @export var bird_scene: PackedScene
-## Avispón que rompe paredes (desde la oleada 4).
+## Avispón que rompe paredes (desde la oleada 2).
 @export var hornet_scene: PackedScene
-## Insecticida en área, no atacable (oleadas pares desde la 4).
+## Insecticida en área, no atacable (oleadas pares desde la 2).
 @export var smoke_scene: PackedScene
-## Pata de gato que roba torres descubiertas (desde la oleada 5).
+## Pata de gato que roba torres descubiertas (desde la oleada 4).
 @export var cat_scene: PackedScene
-## Pata de oso que roba miel (desde la oleada 6).
+## Pata de oso que roba miel (desde la oleada 5).
 @export var bear_scene: PackedScene
 
-## Enemigos de la primera oleada.
-@export var base_enemies: int = 5
+## Enemigos de la primera oleada (ya arranca difícil).
+@export var base_enemies: int = 8
 ## Cuántos enemigos se suman en cada oleada nueva.
-@export var enemies_per_wave: int = 2
+@export var enemies_per_wave: int = 3
 ## Segundos entre un spawn y el siguiente dentro de la oleada.
 @export var spawn_interval: float = 1.5
 ## Pausa entre el final de una oleada y el inicio de la siguiente.
@@ -84,29 +84,30 @@ func _start_next_wave() -> void:
 
 
 ## Arma la lista de escenas de la oleada `w` (mezclada) según qué tipos ya aparecieron.
+## El escalado está adelantado: la amenaza de la "ronda 4" ya se siente en la 1.
 func _wave_recipe(w: int) -> Array[PackedScene]:
 	var list: Array[PackedScene] = []
-	# Siempre hay avispas normales de base.
+	# Siempre hay avispas normales de base (muchas, y crecen rápido).
 	var normals: int = base_enemies + (w - 1) * enemies_per_wave
 	for i in normals:
 		list.append(enemy_scene)
-	# Avispas grandes desde la oleada 2.
-	if w >= 2 and big_wasp_scene != null:
+	# Avispas grandes desde la oleada 1.
+	if w >= 1 and big_wasp_scene != null:
 		list.append(big_wasp_scene)
-	# Pájaro desde la oleada 3.
-	if w >= 3 and bird_scene != null:
+	# Pájaro desde la oleada 2.
+	if w >= 2 and bird_scene != null:
 		list.append(bird_scene)
-	# Avispón (rompe paredes) desde la oleada 4.
-	if w >= 4 and hornet_scene != null:
+	# Avispón (rompe paredes) desde la oleada 2.
+	if w >= 2 and hornet_scene != null:
 		list.append(hornet_scene)
-		# El insecticida acompaña a las oleadas pares (humo, no atacable).
-		if w % 2 == 0 and smoke_scene != null:
-			list.append(smoke_scene)
-	# Pata de gato desde la oleada 5.
-	if w >= 5 and cat_scene != null:
+	# El insecticida acompaña a las oleadas pares (humo, no atacable).
+	if w >= 2 and w % 2 == 0 and smoke_scene != null:
+		list.append(smoke_scene)
+	# Pata de gato desde la oleada 4.
+	if w >= 4 and cat_scene != null:
 		list.append(cat_scene)
-	# Pata de oso desde la oleada 6.
-	if w >= 6 and bear_scene != null:
+	# Pata de oso desde la oleada 5.
+	if w >= 5 and bear_scene != null:
 		list.append(bear_scene)
 	list.shuffle()
 	return list

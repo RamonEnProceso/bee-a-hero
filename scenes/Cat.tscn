@@ -7,9 +7,9 @@
 script = ExtResource("1_cat")
 pickup_scene = ExtResource("2_pickup")
 max_health = 3
-speed = 90.0
+speed = 120.0
 damage = 0
 structure_damage = 0
-material_reward = 6
+material_reward = 4
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

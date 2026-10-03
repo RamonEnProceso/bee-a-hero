@@ -1,16 +1,17 @@
 class_name Bird
 extends Enemy
 
-## Pájaro: entra volando, picotea la torre más lejana del centro (o sus paredes)
-## y se va. Hace poco daño: es para obligarte a cercar tus torres con paredes.
+## Pájaro ENORME (su cabeza ocupa ~2 hexágonos): entra volando, picotea la torre
+## más lejana del centro (o sus paredes) y se va. Hace poco daño: es para obligarte
+## a cercar tus torres con paredes. Cada picotazo es una embestida (lunge) de la cabeza.
 
 enum State { FLY_IN, PECK, FLY_OUT }
 
 @export var peck_interval: float = 1.0
 ## Cuántos picotazos da antes de irse.
 @export var max_pecks: int = 3
-## Distancia a la que empieza a picotear.
-@export var peck_range: float = 22.0
+## Distancia a la que empieza a picotear (larga: el pico es gigante).
+@export var peck_range: float = 64.0
 
 var _state: int = State.FLY_IN
 var _target_tower: Tower
@@ -84,11 +85,24 @@ func _peck(delta: float) -> void:
 	_peck_cooldown -= delta
 	if _peck_cooldown <= 0.0:
 		_current_target.take_damage(damage, self)
+		_lunge()  # la cabeza embiste y se retrae
 		_pecks += 1
 		_peck_cooldown = peck_interval
 		if _pecks >= max_pecks:
 			_state = State.FLY_OUT
 			_exit_dir = _away_from_center()
+
+
+## Embestida: la cabeza avanza rápido hacia el objetivo y se retrae (picotazo).
+func _lunge() -> void:
+	if not is_instance_valid(_current_target):
+		return
+	var target_pos: Vector2 = _current_target.global_position
+	var dir: Vector2 = (target_pos - global_position).normalized()
+	var start: Vector2 = global_position
+	var tw := create_tween()
+	tw.tween_property(self, "global_position", start + dir * 30.0, 0.08)
+	tw.tween_property(self, "global_position", start, 0.14)
 
 
 ## Dirección desde el centro hacia afuera (por la posición actual).
