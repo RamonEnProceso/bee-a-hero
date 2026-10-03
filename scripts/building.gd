@@ -28,18 +28,25 @@ var built: bool = true
 # Rondas que faltan para terminar la construcción.
 var _construction_left: int = 0
 var _hit_tween: Tween
-# Nodos de la vista de obra (indicador, cono y mazo): se crean solo si el edificio
+# Nodos de la vista de obra (indicador, conos y mazo): se crean solo si el edificio
 # tarda rondas en construirse y se liberan al terminarse.
 var _indicator: Sprite2D
-var _cone: Sprite2D
+var _cones: Array[Sprite2D] = []
 var _mallet: Sprite2D
 var _indicator_tween: Tween
 var _mallet_tween: Tween
 var _squash_tween: Tween
-## Posición del cono (borde inferior del panal) en unidades de hex_size.
-const CONE_OFFSET := Vector2(0.0, 2.5)
+## Escala de todos los elementos de obra (1/3 del tamaño de las texturas).
+const CONSTRUCTION_SCALE := 0.33
+## Posiciones de los 3 conos (esquina inferior izquierda, centro abajo y derecha).
+## En unidades de hex_size, medidas desde el centro del edificio.
+const CONE_OFFSETS := [
+	Vector2(-1.2, 0.7),
+	Vector2(0.0, 1.4),
+	Vector2(1.2, 0.7),
+]
 ## Posición del pivote del mazo (el mango) en unidades de hex_size.
-const MALLET_PIVOT := Vector2(2.4, 0.5)
+const MALLET_PIVOT := Vector2(1.4, 0.2)
 @onready var sprite: Sprite2D = $Sprite2D
 
 
@@ -92,21 +99,26 @@ func _texture() -> Texture2D:
 ## Crea los tres elementos de la obra (indicador, cono y mazo) mientras el edificio
 ## se construye. Se liberan al terminar la construcción.
 func _spawn_construction_visuals() -> void:
-	# Indicador en el centro: late creciendo y achicándose.
+	# Indicador en el centro: late creciendo y achicándose (a escala chica).
 	_indicator = Sprite2D.new()
 	_indicator.texture = load("res://textures/ConstruccionIndicador.png")
+	_indicator.scale = Vector2(CONSTRUCTION_SCALE, CONSTRUCTION_SCALE)
 	add_child(_indicator)
 	_start_indicator_pulse()
 
-	# Cono debajo del sprite, delimitando el borde inferior del panal de 7.
-	_cone = Sprite2D.new()
-	_cone.texture = load("res://textures/ConstruccionCono.png")
-	_cone.position = CONE_OFFSET * hex_size
-	add_child(_cone)
+	# Tres conos dentro del sprite, en la parte de abajo: centro y dos esquinas.
+	for off in CONE_OFFSETS:
+		var cone := Sprite2D.new()
+		cone.texture = load("res://textures/ConstruccionCono.png")
+		cone.scale = Vector2(CONSTRUCTION_SCALE, CONSTRUCTION_SCALE)
+		cone.position = off * hex_size
+		add_child(cone)
+		_cones.append(cone)
 
 	# Mazo a la derecha, pivotando desde el mango (abajo-derecha); golpea en bucle.
 	_mallet = Sprite2D.new()
 	_mallet.texture = load("res://textures/ConstruccionMazo.png")
+	_mallet.scale = Vector2(CONSTRUCTION_SCALE, CONSTRUCTION_SCALE)
 	_mallet.centered = false
 	_mallet.offset = Vector2(-64.0, -64.0)  # el mango termina en la esquina inferior-derecha
 	_mallet.position = MALLET_PIVOT * hex_size
@@ -116,10 +128,13 @@ func _spawn_construction_visuals() -> void:
 
 ## Latido del indicador: crece y se achica de a poco, en bucle.
 func _start_indicator_pulse() -> void:
-	_indicator.scale = Vector2(0.8, 0.8)
+	# Late alrededor de su escala base (chica): crece y se achica de a poco.
+	var lo := CONSTRUCTION_SCALE * 0.8
+	var hi := CONSTRUCTION_SCALE * 1.2
+	_indicator.scale = Vector2(lo, lo)
 	_indicator_tween = create_tween().set_loops()
-	_indicator_tween.tween_property(_indicator, "scale", Vector2(1.2, 1.2), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_indicator_tween.tween_property(_indicator, "scale", Vector2(0.8, 0.8), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_indicator_tween.tween_property(_indicator, "scale", Vector2(hi, hi), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_indicator_tween.tween_property(_indicator, "scale", Vector2(lo, lo), 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 ## Balanceo del mazo: baja golpeando, el edificio se aplasta y vuelve a subir.
@@ -152,8 +167,10 @@ func _clear_construction_visuals() -> void:
 		_squash_tween.kill()
 	if is_instance_valid(_indicator):
 		_indicator.queue_free()
-	if is_instance_valid(_cone):
-		_cone.queue_free()
+	for cone in _cones:
+		if is_instance_valid(cone):
+			cone.queue_free()
+	_cones.clear()
 	if is_instance_valid(_mallet):
 		_mallet.queue_free()
 
