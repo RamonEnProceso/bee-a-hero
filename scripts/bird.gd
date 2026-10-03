@@ -75,12 +75,13 @@ func _fly_toward(pos: Vector2, delta: float) -> void:
 ## Picotea la pared/torre actual; si se rompe, pasa a la siguiente o se va.
 func _peck(delta: float) -> void:
 	if not is_instance_valid(_current_target):
-		_current_target = _wall_adjacent_to(_target_tower)
-		if _current_target == null and is_instance_valid(_target_tower):
-			_current_target = _target_tower
-		if _current_target == null:
+		# Si la torre ya no existe (la destruyó otro enemigo/humo/gato), no queda nada que picotear.
+		if not is_instance_valid(_target_tower):
 			leave()
 			return
+		_current_target = _wall_adjacent_to(_target_tower)
+		if _current_target == null:
+			_current_target = _target_tower
 
 	_peck_cooldown -= delta
 	if _peck_cooldown <= 0.0:
@@ -126,8 +127,11 @@ func _furthest_tower() -> Tower:
 
 
 ## Una pared vecina a la torre (la primera que encuentra), o null.
+## Recorre todas las celdas que ocupa (el cañón tiene 4).
 func _wall_adjacent_to(tower: Tower) -> Wall:
-	for nb in hex_grid.get_neighbors(tower.cell):
-		if hex_grid.walls.has(nb):
-			return hex_grid.walls[nb]
+	var cells: Array = tower.cells if tower.cells.size() > 0 else [tower.cell]
+	for c in cells:
+		for nb in hex_grid.get_neighbors(c):
+			if hex_grid.walls.has(nb):
+				return hex_grid.walls[nb]
 	return null
