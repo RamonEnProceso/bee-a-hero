@@ -10,6 +10,7 @@ extends Node2D
 @onready var game_over_label: Label = $UILayer/GameOverLabel
 @onready var wave_label: Label = $UILayer/WaveLabel
 @onready var wave_banner: Label = $UILayer/WaveBanner
+@onready var slots_label: Label = $UILayer/SlotsLabel
 
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
@@ -34,10 +35,12 @@ func _ready() -> void:
 	queen.died.connect(_on_queen_died)
 	spawner.wave_started.connect(_on_wave_started)
 	Game.materials_changed.connect(_on_materials_changed)
+	Game.slots_changed.connect(_on_slots_changed)
 
 	_spawn_suicide_bees()
 
 	_on_materials_changed(Game.materials)
+	_on_slots_changed(Game.slots_used(), Game.slot_capacity)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -129,6 +132,12 @@ func _spawn_suicide_bees() -> void:
 func _on_materials_changed(_value: int) -> void:
 	material_label.text = "Miel: %d" % Game.materials
 	build_menu.queue_redraw()  # actualiza qué tarjetas se ven asequibles
+
+
+## Actualiza el contador de abejas colocadas / capacidad.
+func _on_slots_changed(used: int, capacity: int) -> void:
+	slots_label.text = "Abejas: %d/%d" % [used, capacity]
+	build_menu.queue_redraw()  # actualiza el brillo de las tarjetas
 
 
 func _on_wave_started(wave: int) -> void:
