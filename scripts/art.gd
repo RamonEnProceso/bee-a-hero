@@ -87,7 +87,7 @@ static func enemy() -> Texture2D:
 	return _cache["enemy"]
 
 
-## Pájaro ENORME: solo "entra" su cabeza (pico largo + cabeza), picotea y se va.
+## Pájaro de perfil: torso + cabeza + pico + cola. Vuela y se va (no ataca).
 ## Ocupa ~128 px ≈ 2 hexágonos de largo.
 static func bird() -> Texture2D:
 	if not _cache.has("bird"):
@@ -252,28 +252,42 @@ static func _bee_texture(size: int, radius: float) -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 
-## Cabeza de pájaro gigante: cabeza celeste + pico largo naranja + ojo.
-## Apunta hacia +X (el sprite rota para mirar al objetivo, como el resto).
+## Pájaro de perfil apuntando hacia +X: torso (cuerpo) + cabeza + pico + ojo + cola.
+## El sprite rota para mirar hacia donde vuela, como el resto.
 static func _bird_texture() -> ImageTexture:
 	var size := 128
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 
-	var head_color := Color(0.55, 0.7, 0.95)
+	var body_color := Color(0.50, 0.66, 0.90)
+	var head_color := Color(0.64, 0.78, 0.98)
 	var beak_color := Color(0.95, 0.62, 0.15)
 	var eye_color := Color(0.1, 0.1, 0.15)
-	var head_c := Vector2(44, 64)
-	# Pico: triángulo que sobresale hacia +X.
-	var beak := PackedVector2Array([Vector2(126, 64), Vector2(48, 40), Vector2(48, 88)])
+
+	var body_c := Vector2(40, 64)
+	var head_c := Vector2(78, 58)
+	# Pico: triángulo que sobresale hacia +X; cola: triángulo que apunta hacia -X.
+	var beak := PackedVector2Array([Vector2(126, 60), Vector2(88, 48), Vector2(88, 72)])
+	var tail := PackedVector2Array([Vector2(2, 64), Vector2(30, 48), Vector2(30, 80)])
 
 	for y in size:
 		for x in size:
 			var p := Vector2(x + 0.5, y + 0.5)
-			if p.distance_to(head_c) <= 42.0:
+			# Torso: elipse horizontal detrás de la cabeza.
+			var d := p - body_c
+			if (d.x * d.x) / (36.0 * 36.0) + (d.y * d.y) / (28.0 * 28.0) <= 1.0:
+				img.set_pixel(x, y, body_color)
+			# Cola (triángulo que sobresale por atrás).
+			if Geometry2D.is_point_in_polygon(p, tail):
+				img.set_pixel(x, y, body_color)
+			# Cabeza (círculo, por delante).
+			if p.distance_to(head_c) <= 22.0:
 				img.set_pixel(x, y, head_color)
-			if p.distance_to(Vector2(56, 48)) <= 8.0:
-				img.set_pixel(x, y, eye_color)
+			# Pico.
 			if Geometry2D.is_point_in_polygon(p, beak):
 				img.set_pixel(x, y, beak_color)
+			# Ojo.
+			if p.distance_to(Vector2(88, 50)) <= 6.0:
+				img.set_pixel(x, y, eye_color)
 
 	return ImageTexture.create_from_image(img)

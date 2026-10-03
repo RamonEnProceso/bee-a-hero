@@ -8,7 +8,7 @@ extends Node2D
 @export var enemy_scene: PackedScene
 ## Avispa más grande (desde la oleada 1, resistente al empuje).
 @export var big_wasp_scene: PackedScene
-## Pájaro que picotea torres (desde la oleada 2).
+## Pájaro que sobrevuela y se va (desde la oleada 3).
 @export var bird_scene: PackedScene
 ## Avispón que rompe paredes (desde la oleada 2).
 @export var hornet_scene: PackedScene
@@ -97,8 +97,8 @@ func _wave_recipe(w: int) -> Array[PackedScene]:
 	# Avispas grandes desde la oleada 1.
 	if w >= 1 and big_wasp_scene != null:
 		list.append(big_wasp_scene)
-	# Pájaro desde la oleada 2.
-	if w >= 2 and bird_scene != null:
+	# Pájaro desde la oleada 3.
+	if w >= 3 and bird_scene != null:
 		list.append(bird_scene)
 	# Avispón (rompe paredes) desde la oleada 2.
 	if w >= 2 and hornet_scene != null:
