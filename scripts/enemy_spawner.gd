@@ -21,14 +21,18 @@ extends Node2D
 ## Pata de oso que roba miel (desde la oleada 5).
 @export var bear_scene: PackedScene
 
-## Enemigos de la primera oleada (ya arranca difícil).
-@export var base_enemies: int = 8
-## Cuántos enemigos se suman en cada oleada nueva.
-@export var enemies_per_wave: int = 3
+## Enemigos de la primera oleada (pocos, para dar tiempo a construir).
+@export var base_enemies: int = 3
+## Cuántos enemigos se suman en cada oleada nueva (crecimiento suave).
+@export var enemies_per_wave: int = 2
 ## Segundos entre un spawn y el siguiente dentro de la oleada.
 @export var spawn_interval: float = 1.5
 ## Pausa entre el final de una oleada y el inicio de la siguiente.
-@export var time_between_waves: float = 8.0
+@export var time_between_waves: float = 10.0
+## Espera antes de la primera oleada (tiempo para construir el primer edificio).
+@export var first_wave_delay: float = 12.0
+## Factor de velocidad de las primeras oleadas (1.0 = velocidad normal).
+@export var early_speed_scale: float = 0.6
 
 ## Se emite al arrancar una oleada (con su número).
 signal wave_started(wave: int)
@@ -53,8 +57,8 @@ var _wait_timer: float = 0.0
 
 
 func _ready() -> void:
-	# La primera oleada arranca un poco después de entrar al juego.
-	_wait_timer = 3.0
+	# La primera oleada arranca tras un buen rato, para que haya tiempo de construir.
+	_wait_timer = first_wave_delay
 
 
 func _process(delta: float) -> void:
@@ -89,15 +93,15 @@ func _start_next_wave() -> void:
 
 
 ## Arma la lista de escenas de la oleada `w` (mezclada) según qué tipos ya aparecieron.
-## El escalado está adelantado: la amenaza de la "ronda 4" ya se siente en la 1.
+## El arranque es suave: pocas avispas y las amenazas nuevas se suman de a poco.
 func _wave_recipe(w: int) -> Array[PackedScene]:
 	var list: Array[PackedScene] = []
-	# Siempre hay avispas normales de base (muchas, y crecen rápido).
+	# Siempre hay avispas normales de base (pocas al principio, crecen despacio).
 	var normals: int = base_enemies + (w - 1) * enemies_per_wave
 	for i in normals:
 		list.append(enemy_scene)
-	# Avispas grandes desde la oleada 1.
-	if w >= 1 and big_wasp_scene != null:
+	# Avispas grandes desde la oleada 2 (la 1 es solo de avispas normales).
+	if w >= 2 and big_wasp_scene != null:
 		list.append(big_wasp_scene)
 	# Avispa torbellino desde la oleada 3.
 	if w >= 3 and spiral_wasp_scene != null:
@@ -119,6 +123,15 @@ func _wave_recipe(w: int) -> Array[PackedScene]:
 		list.append(bear_scene)
 	list.shuffle()
 	return list
+
+
+## Factor de velocidad de la oleada `w`: las primeras van más lentas.
+func _speed_scale(w: int) -> float:
+	if w <= 1:
+		return early_speed_scale
+	if w <= 2:
+		return early_speed_scale + 0.2
+	return 1.0
 
 
 ## Suelta el próximo enemigo de la cola en un hexágono del borde.
@@ -143,6 +156,7 @@ func _spawn_at(scene: PackedScene, cell: Vector2i) -> void:
 		var enemy: Enemy = node
 		enemy.target = queen
 		enemy.hex_grid = hex_grid
+		enemy.speed *= _speed_scale(wave)
 		enemy.died.connect(_on_enemy_died)
 		_alive += 1
 	# El humo se esparce desde una celda del borde y NO se cuenta como enemigo.

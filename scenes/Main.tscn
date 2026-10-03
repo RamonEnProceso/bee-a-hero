@@ -61,8 +61,8 @@ hornet_scene = ExtResource("13_hornet")
 smoke_scene = ExtResource("17_smoke")
 cat_scene = ExtResource("15_cat")
 bear_scene = ExtResource("16_bear")
-enemies_per_wave = 4
-time_between_waves = 7.0
+enemies_per_wave = 2
+time_between_waves = 10.0
 
 [node name="BuilderBee" type="Node2D" parent="." unique_id=874248090]
 script = ExtResource("8_bee")
