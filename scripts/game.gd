@@ -13,13 +13,13 @@ const BUILD_DEFS := {
 	BuildType.WALL: { "name": "Pared", "cost": 5 },
 	BuildType.REINFORCED: { "name": "Pared reforzada", "cost": 15 },
 	BuildType.TRAP: { "name": "Pared trampa", "cost": 6 },
-	BuildType.TOWER: { "name": "Torre", "cost": 50 },
+	BuildType.TOWER: { "name": "Torre", "cost": 40 },
 	BuildType.DOUBLE_TOWER: { "name": "Torre doble", "cost": 90 },
 	BuildType.BIG_TOWER: { "name": "Cañón", "cost": 200 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
-## 130 = 2 torres (100) + algo de defensa. La mecánica principal son las
+## 130 = 3 torres (120) + algo de defensa. La mecánica principal son las
 ## paredes y trampas baratas; las torres (y el cañón) son el golpe caro.
 var materials: int = 130
 
