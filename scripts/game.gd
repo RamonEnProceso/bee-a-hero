@@ -29,8 +29,8 @@ const BUILD_DEFS := {
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
-## 200 = 1 base (80) + 3 torres (120). Arrancamos con un edificio y tres torres.
-var materials: int = 200
+## 500 = 1 base (80) + 1 guarderia (150) + 3 torres (160). Arrancamos con un edificio y tres torres.
+var materials: int = 500
 
 ## Torres comunes gratis acumuladas (las entrega la guardería al terminar
 ## cada oleada). Se consumen al colocar una torre sin pagar miel.
