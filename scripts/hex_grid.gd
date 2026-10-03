@@ -24,6 +24,10 @@ extends Node2D
 @export var big_tower_scene: PackedScene
 ## Escena del edificio base (ocupa 3 hexágonos, habilita 3 slots).
 @export var building_scene: PackedScene
+## Escena de la guardería (regala una torre por oleada).
+@export var guarderia_scene: PackedScene
+## Escena de la cultivadora (genera miel por oleada).
+@export var cultivadora_scene: PackedScene
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
@@ -167,12 +171,17 @@ func can_place_build(type: int, cell: Vector2i) -> bool:
 			if not can_place(c):
 				return false
 		return true
-	if type == Game.BuildType.BASE:
+	if _is_building(type):
 		for c in _building_cells(cell):
 			if not can_place(c):
 				return false
 		return true
 	return can_place(cell)
+
+
+## ¿El `type` es un edificio (ocupa 3 hexágonos)?
+func _is_building(type: int) -> bool:
+	return type == Game.BuildType.BASE or type == Game.BuildType.GUARDERIA or type == Game.BuildType.CULTIVADORA
 
 
 ## Devuelve la pared en `cell`, o null si no hay.
@@ -193,7 +202,11 @@ func structure_at(cell: Vector2i):
 	if towers.has(cell):
 		return towers[cell]
 	if buildings.has(cell):
-		return buildings[cell]
+		var b = buildings[cell]
+		# Un edificio en construcción ocupa la celda pero no se puede atacar.
+		if b.built:
+			return b
+		return null
 	return null
 
 
@@ -214,6 +227,10 @@ func build(type: int, cell: Vector2i) -> Node2D:
 			return build_big_tower(cell)
 		Game.BuildType.BASE:
 			return build_building(cell)
+		Game.BuildType.GUARDERIA:
+			return build_guarderia(cell)
+		Game.BuildType.CULTIVADORA:
+			return build_cultivadora(cell)
 	return null
 
 
@@ -327,16 +344,32 @@ func build_big_tower(cell: Vector2i) -> Tower:
 	return tower
 
 
-## Construye un edificio base (3 hexágonos) anclado en `anchor`. El nodo queda
-## centrado en el centro geométrico del footprint y se anota bajo sus 3 celdas.
+## Construye un edificio base en `anchor`.
 func build_building(anchor: Vector2i) -> Building:
-	if building_scene == null:
-		return null
-	if not can_place_build(Game.BuildType.BASE, anchor):
-		return null
+	return _build_building_with(building_scene, anchor)
 
+
+## Construye una guardería en `anchor`.
+func build_guarderia(anchor: Vector2i) -> Building:
+	return _build_building_with(guarderia_scene, anchor)
+
+
+## Construye una cultivadora en `anchor`.
+func build_cultivadora(anchor: Vector2i) -> Building:
+	return _build_building_with(cultivadora_scene, anchor)
+
+
+## Edificio genérico (3 hexágonos) anclado en `anchor`. El nodo queda centrado en
+## el centro geométrico del footprint y se anota bajo sus 3 celdas.
+func _build_building_with(scene: PackedScene, anchor: Vector2i) -> Building:
+	if scene == null:
+		return null
 	var cells := _building_cells(anchor)
-	var building: Building = building_scene.instantiate()
+	for c in cells:
+		if not can_place(c):
+			return null
+
+	var building: Building = scene.instantiate()
 	building.grid = self
 	building.cell = anchor
 	building.hex_size = hex_size
@@ -412,7 +445,7 @@ func _draw() -> void:
 		if preview_type == Game.BuildType.BIG_TOWER:
 			for c in _big_tower_cells(preview_cell):
 				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
-		elif preview_type == Game.BuildType.BASE:
+		elif _is_building(preview_type):
 			for c in _building_cells(preview_cell):
 				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
 		else:
@@ -421,7 +454,7 @@ func _draw() -> void:
 		var s: float = hex_size * 1.8
 		if preview_type == Game.BuildType.BIG_TOWER:
 			s = hex_size * 4.5
-		elif preview_type == Game.BuildType.BASE:
+		elif _is_building(preview_type):
 			s = hex_size * 3.6
 		var mp: Vector2 = to_local(preview_mouse_world)
 		draw_texture_rect(preview_texture, Rect2(mp - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, 0.7))

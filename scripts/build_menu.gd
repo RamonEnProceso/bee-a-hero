@@ -15,6 +15,8 @@ const TOOLTIPS := {
 	Game.BuildType.DOUBLE_TOWER: "Dispara el doble de rápido",
 	Game.BuildType.BIG_TOWER: "Tiros fuertes de largo alcance",
 	Game.BuildType.BASE: "Desbloquea 3 abejas más",
+	Game.BuildType.GUARDERIA: "Regala una torre por oleada",
+	Game.BuildType.CULTIVADORA: "Genera 100 de miel por oleada",
 }
 
 var _cards: Dictionary = {}  # type -> Rect2

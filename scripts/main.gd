@@ -34,6 +34,7 @@ func _ready() -> void:
 
 	queen.died.connect(_on_queen_died)
 	spawner.wave_started.connect(_on_wave_started)
+	spawner.wave_cleared.connect(_on_wave_cleared)
 	Game.materials_changed.connect(_on_materials_changed)
 	Game.slots_changed.connect(_on_slots_changed)
 
@@ -143,6 +144,13 @@ func _on_slots_changed(used: int, capacity: int) -> void:
 func _on_wave_started(wave: int) -> void:
 	wave_label.text = "Oleada %d" % wave
 	_announce_wave("Oleada %d" % wave)
+
+
+## Al terminar una oleada avanzamos las construcciones y damos recompensas.
+func _on_wave_cleared(_wave: int) -> void:
+	for node in get_tree().get_nodes_in_group("buildings"):
+		if node is Building:
+			node.on_wave_cleared()
 
 
 ## Muestra el nombre de la oleada en grande al centro: aparece rápido y se va con un fade lento.
