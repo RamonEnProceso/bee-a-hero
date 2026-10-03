@@ -1,21 +1,33 @@
 class_name Enemy
 extends Node2D
 
+## La avispa enemiga: va en línea recta hacia la reina, atacando estructuras en el camino.
+## Nunca ataca a la abeja protagonista (es invulnerable).
+
+@export var max_health: int = 3
 @export var speed: float = 60.0
 @export var damage: int = 1
-@export var wall_damage: int = 1
+@export var structure_damage: int = 1
 @export var attack_interval: float = 0.6
+## Material que suelta al ser destruida por una torre.
+@export var material_reward: int = 5
 @export var body_color: Color = Color(0.85, 0.15, 0.15)
 @export var outline_color: Color = Color(0.4, 0.05, 0.05)
 
-## A quién persigue (siempre la reina por ahora).
+## A quién persigue (siempre la reina).
 var target: Queen
-## Referencia a la grilla para detectar paredes en el camino.
+## Referencia a la grilla para detectar estructuras en el camino.
 var hex_grid: HexGrid
 var dead: bool = false
 
-# Cooldown entre golpes a una pared.
+var health: int
+# Cooldown entre golpes a una estructura.
 var attack_cooldown: float = 0.0
+
+
+func _ready() -> void:
+	health = max_health
+	add_to_group("enemies")
 
 
 func _process(delta: float) -> void:
@@ -27,14 +39,14 @@ func _process(delta: float) -> void:
 	# Dirección en línea recta hacia la reina.
 	var dir: Vector2 = (target.global_position - global_position).normalized()
 
-	# Si hay una pared justo delante, nos detenemos y la atacamos.
+	# Si hay una estructura (pared o torre) justo delante, nos detenemos y la atacamos.
 	if hex_grid != null:
 		var lookahead: Vector2 = global_position + dir * (hex_grid.hex_size * 0.5)
-		var wall: Wall = hex_grid.wall_at(hex_grid.cell_at_world(lookahead))
-		if wall != null:
+		var structure = hex_grid.structure_at(hex_grid.cell_at_world(lookahead))
+		if structure != null:
 			rotation = dir.angle()
 			if attack_cooldown <= 0.0:
-				wall.take_damage(wall_damage)
+				structure.take_damage(structure_damage)
 				attack_cooldown = attack_interval
 			return
 
@@ -47,10 +59,26 @@ func _process(delta: float) -> void:
 		_hit_queen()
 
 
-func _hit_queen() -> void:
+## Recibe daño de los proyectiles de las torres.
+func take_damage(amount: int) -> void:
+	health = maxi(0, health - amount)
+	if health <= 0:
+		die(true)
+
+
+## `reward` = true si la mató una torre (suelta material); false si llegó a la reina.
+func die(reward: bool = false) -> void:
+	if dead:
+		return
 	dead = true
-	target.take_damage(damage)
+	if reward:
+		Game.gain(material_reward)
 	queue_free()
+
+
+func _hit_queen() -> void:
+	target.take_damage(damage)
+	die(false)
 
 
 func _draw() -> void:

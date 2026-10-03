@@ -12,6 +12,8 @@ extends Node2D
 @export var hover_color: Color = Color(1.0, 0.92, 0.45)
 ## Escena de la pared que se construye al hacer click (Etapa 3).
 @export var wall_scene: PackedScene
+## Escena de la torre (el aguijón) que se construye (Etapa 4).
+@export var tower_scene: PackedScene
 
 ## Se emite cuando el jugador hace click izquierdo sobre una celda.
 signal cell_clicked(cell: Vector2i)
@@ -20,11 +22,13 @@ signal cell_clicked(cell: Vector2i)
 var hovered: Vector2i = Vector2i.ZERO
 # Paredes construidas: clave = celda (Vector2i), valor = nodo Wall.
 var walls: Dictionary = {}
+# Torres construidas: clave = celda (Vector2i), valor = nodo Tower.
+var towers: Dictionary = {}
 
 
 func _ready() -> void:
-	# Centramos el panal en la pantalla para que la celda (0,0) quede en el medio.
-	position = get_viewport_rect().size / 2.0
+	# La grilla queda en el origen (0,0); la cámara que sigue a la abeja muestra la vista.
+	pass
 
 
 func _process(_delta: float) -> void:
@@ -106,6 +110,14 @@ func cube_radius(q: int, r: int) -> int:
 	return maxi(absi(q), maxi(absi(r), absi(q + r)))
 
 
+## Distancia entre dos celdas en pasos hexagonales (distancia cúbica).
+func cube_distance(a: Vector2i, b: Vector2i) -> int:
+	var dq: int = absi(a.x - b.x)
+	var dr: int = absi(a.y - b.y)
+	var ds: int = absi((a.x + a.y) - (b.x + b.y))
+	return maxi(dq, maxi(dr, ds))
+
+
 ## Celda que contiene una posición del mundo (el enemigo la usa para detectar paredes).
 func cell_at_world(pos: Vector2) -> Vector2i:
 	return pixel_to_hex(to_local(pos))
@@ -114,6 +126,21 @@ func cell_at_world(pos: Vector2) -> Vector2i:
 ## Devuelve la pared en `cell`, o null si no hay.
 func wall_at(cell: Vector2i) -> Wall:
 	return walls.get(cell)
+
+
+## Devuelve la torre en `cell`, o null si no hay.
+func tower_at(cell: Vector2i) -> Tower:
+	return towers.get(cell)
+
+
+## Devuelve la estructura (pared o torre) en `cell`, o null si no hay.
+## Sin tipo de retorno: los enemigos llaman .take_damage() sobre lo que devuelva.
+func structure_at(cell: Vector2i):
+	if walls.has(cell):
+		return walls[cell]
+	if towers.has(cell):
+		return towers[cell]
+	return null
 
 
 ## Construye una pared en `cell`. Devuelve null si la celda no es válida.
@@ -140,6 +167,32 @@ func build_wall(cell: Vector2i) -> Wall:
 ## Saca una pared del diccionario (la llama Wall._break al romperse).
 func remove_wall(cell: Vector2i) -> void:
 	walls.erase(cell)
+
+
+## Saca una torre del diccionario (la llama Tower.die al destruirse).
+func remove_tower(cell: Vector2i) -> void:
+	towers.erase(cell)
+
+
+## Construye una torre en `cell`. Devuelve null si la celda no es válida.
+func build_tower(cell: Vector2i) -> Tower:
+	if tower_scene == null:
+		return null
+	if walls.has(cell) or towers.has(cell):
+		return null
+	if cell == Vector2i.ZERO:
+		return null  # la reina ocupa (0,0)
+	if cube_radius(cell.x, cell.y) >= grid_radius:
+		return null  # no construir en el borde donde spawnean enemigos
+
+	var tower: Tower = tower_scene.instantiate()
+	tower.grid = self
+	tower.cell = cell
+	tower.hex_size = hex_size
+	tower.position = hex_to_pixel(cell.x, cell.y)
+	towers[cell] = tower
+	add_child(tower)
+	return tower
 
 
 # ---------------------------------------------------------------------------
