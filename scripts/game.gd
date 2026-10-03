@@ -25,7 +25,8 @@ const BUILD_DEFS := {
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
-var materials: int = 50
+## 130 alcanza para 3 torres (90) + 4 paredes (40).
+var materials: int = 130
 
 
 func can_afford(cost: int) -> bool:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/hex_grid.gd" id="2_grid"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Tower.tscn" id="7_tower"]
 [ext_resource type="Script" path="res://scripts/builder_bee.gd" id="8_bee"]
 [ext_resource type="Script" path="res://scripts/build_menu.gd" id="9_menu"]
+[ext_resource type="PackedScene" path="res://scenes/Projectile.tscn" id="10_proj"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -21,12 +22,17 @@ tower_scene = ExtResource("7_tower")
 [node name="Queen" type="Node2D" parent="."]
 script = ExtResource("3_queen")
 
+[node name="Sprite2D" type="Sprite2D" parent="Queen"]
+
 [node name="EnemySpawner" type="Node2D" parent="."]
 script = ExtResource("4_spawner")
 enemy_scene = ExtResource("5_enemy")
 
 [node name="BuilderBee" type="Node2D" parent="."]
 script = ExtResource("8_bee")
+projectile_scene = ExtResource("10_proj")
+
+[node name="Sprite2D" type="Sprite2D" parent="BuilderBee"]
 
 [node name="Camera2D" type="Camera2D" parent="BuilderBee"]
 

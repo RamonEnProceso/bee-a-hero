@@ -12,8 +12,8 @@ extends Node2D
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
 
-# -1 = nada seleccionado; si no, un valor de Game.BuildType.
-var selected_type: int = -1
+# Tipo de tarjeta que se está arrastrando desde el menú, o -1 si no.
+var dragging_type: int = -1
 
 
 func _ready() -> void:
@@ -26,44 +26,83 @@ func _ready() -> void:
 	spawner.queen = queen
 
 	queen.died.connect(_on_queen_died)
-	hex_grid.cell_clicked.connect(_on_cell_clicked)
-	build_menu.build_selected.connect(_on_build_selected)
 	Game.materials_changed.connect(_on_materials_changed)
 
 	_on_materials_changed(Game.materials)
 
 
-func _on_build_selected(type: int) -> void:
-	selected_type = type
+func _unhandled_input(event: InputEvent) -> void:
+	# Drag & drop de construcción: agarrar una tarjeta arriba y soltar sobre el panal.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			var type: int = build_menu.card_at(event.position)
+			if type >= 0 and Game.can_afford(Game.BUILD_DEFS[type]["cost"]):
+				dragging_type = type
+				_update_drag_preview()
+		else:
+			if dragging_type >= 0:
+				var world: Vector2 = hex_grid.get_global_mouse_position()
+				_try_build(dragging_type, hex_grid.cell_at_world(world))
+				_end_drag()
+	elif event is InputEventMouseMotion and dragging_type >= 0:
+		_update_drag_preview()
 
 
-func _on_materials_changed(value: int) -> void:
-	material_label.text = "Miel: %d" % value
+## Actualiza la vista previa: círculo de rango + celda destino + fantasma.
+func _update_drag_preview() -> void:
+	var world: Vector2 = hex_grid.get_global_mouse_position()
+	var cell: Vector2i = hex_grid.cell_at_world(world)
+
+	hex_grid.show_build_range = true
+	hex_grid.build_center = builder_bee.global_position
+	hex_grid.build_range_px = build_range * hex_grid.hex_size * sqrt(3.0)
+	hex_grid.preview_mouse_world = world
+	hex_grid.preview_cell = cell
+	hex_grid.preview_valid = _can_build(dragging_type, cell)
+	hex_grid.preview_texture = Art.wall() if dragging_type == Game.BuildType.WALL else Art.tower()
+	hex_grid.queue_redraw()
 
 
-func _on_cell_clicked(cell: Vector2i) -> void:
-	if selected_type < 0:
-		return  # no hay nada seleccionado en el menú
+func _end_drag() -> void:
+	dragging_type = -1
+	hex_grid.show_build_range = false
+	hex_grid.preview_texture = null
+	hex_grid.queue_redraw()
 
-	var def: Dictionary = Game.BUILD_DEFS[selected_type]
+
+func _can_build(type: int, cell: Vector2i) -> bool:
+	if type < 0:
+		return false
+	var def: Dictionary = Game.BUILD_DEFS[type]
 	if not Game.can_afford(def["cost"]):
-		return  # sin material suficiente
-
-	# Regla de proximidad: la celda debe estar cerca de la abeja y no sobre ella.
+		return false
+	if not hex_grid.can_place(cell):
+		return false
+	# Cercanía a la abeja y no sobre ella.
 	var bee_cell: Vector2i = hex_grid.cell_at_world(builder_bee.global_position)
 	if cell == bee_cell:
-		return  # no construir sobre la abeja
+		return false
 	if hex_grid.cube_distance(bee_cell, cell) > build_range:
-		return  # demasiado lejos de la abeja
+		return false
+	return true
 
+
+func _try_build(type: int, cell: Vector2i) -> void:
+	if not _can_build(type, cell):
+		return
+	var def: Dictionary = Game.BUILD_DEFS[type]
 	var built: bool = false
-	if selected_type == Game.BuildType.WALL:
+	if type == Game.BuildType.WALL:
 		built = hex_grid.build_wall(cell) != null
-	elif selected_type == Game.BuildType.TOWER:
+	elif type == Game.BuildType.TOWER:
 		built = hex_grid.build_tower(cell) != null
-
 	if built:
 		Game.spend(def["cost"])
+
+
+func _on_materials_changed(_value: int) -> void:
+	material_label.text = "Miel: %d" % Game.materials
+	build_menu.queue_redraw()  # actualiza qué tarjetas se ven asequibles
 
 
 func _on_queen_died() -> void:

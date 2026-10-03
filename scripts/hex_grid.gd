@@ -4,19 +4,16 @@ extends Node2D
 ## Distancia del centro de cada hexágono a sus vértices, en píxeles.
 @export var hex_size: float = 32.0
 ## Cuántos "anillos" de hexágonos se dibujan alrededor del centro (0,0).
-@export var grid_radius: int = 6
+@export var grid_radius: int = 12
 
-# Colores placeholder (sin arte todavía, solo hexágonos de color).
+# Colores placeholder del panal.
 @export var fill_color: Color = Color(0.95, 0.72, 0.20)
 @export var outline_color: Color = Color(0.55, 0.38, 0.10)
 @export var hover_color: Color = Color(1.0, 0.92, 0.45)
-## Escena de la pared que se construye al hacer click (Etapa 3).
+## Escena de la pared que se construye.
 @export var wall_scene: PackedScene
-## Escena de la torre (el aguijón) que se construye (Etapa 4).
+## Escena de la torre (el aguijón) que se construye.
 @export var tower_scene: PackedScene
-
-## Se emite cuando el jugador hace click izquierdo sobre una celda.
-signal cell_clicked(cell: Vector2i)
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
@@ -25,6 +22,15 @@ var walls: Dictionary = {}
 # Torres construidas: clave = celda (Vector2i), valor = nodo Tower.
 var towers: Dictionary = {}
 
+# --- Vista previa mientras arrastramos una tarjeta (main.gd la actualiza) ---
+var show_build_range: bool = false
+var build_center: Vector2 = Vector2.ZERO
+var build_range_px: float = 0.0
+var preview_cell: Vector2i = Vector2i.ZERO
+var preview_mouse_world: Vector2 = Vector2.ZERO
+var preview_texture: Texture2D
+var preview_valid: bool = false
+
 
 func _ready() -> void:
 	# La grilla queda en el origen (0,0); la cámara que sigue a la abeja muestra la vista.
@@ -32,17 +38,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	# Convertimos la posición global del mouse a coordenadas locales de la grilla
-	# y buscamos qué hexágono contiene ese punto.
+	# Convertimos la posición global del mouse a coordenadas locales y buscamos la celda.
 	hovered = pixel_to_hex(to_local(get_global_mouse_position()))
 	queue_redraw()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	# Al hacer click izquierdo, avisamos qué celda se clickeó (la construye Main).
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var cell: Vector2i = pixel_to_hex(to_local(get_global_mouse_position()))
-		cell_clicked.emit(cell)
 
 
 # ---------------------------------------------------------------------------
@@ -58,7 +56,6 @@ func hex_to_pixel(q: int, r: int) -> Vector2:
 
 ## Convierte una posición en píxeles (local a la grilla) a coordenadas axiales.
 func pixel_to_hex(pos: Vector2) -> Vector2i:
-	# Coordenadas cúbicas fraccionarias.
 	var qf: float = (sqrt(3.0) / 3.0 * pos.x - pos.y / 3.0) / hex_size
 	var rf: float = (2.0 / 3.0 * pos.y) / hex_size
 	return cube_round(qf, rf)
@@ -75,7 +72,6 @@ func cube_round(qf: float, rf: float) -> Vector2i:
 	var r_diff: float = abs(float(rr) - rf)
 	var s_diff: float = abs(float(rs) - sf)
 
-	# Corregimos la componente con mayor error para que q + r + s siga valiendo 0.
 	if q_diff > r_diff and q_diff > s_diff:
 		rq = -rr - rs
 	elif r_diff > s_diff:
@@ -98,9 +94,7 @@ func get_ring_cells() -> Array[Vector2i]:
 		var r_min: int = maxi(-grid_radius, -q - grid_radius)
 		var r_max: int = mini(grid_radius, -q + grid_radius)
 		for r in range(r_min, r_max + 1):
-			# El "radio cúbico" de una celda es max(|q|, |r|, |q+r|).
-			var radius: int = maxi(absi(q), maxi(absi(r), absi(q + r)))
-			if radius == grid_radius:
+			if cube_radius(q, r) == grid_radius:
 				cells.append(Vector2i(q, r))
 	return cells
 
@@ -118,9 +112,20 @@ func cube_distance(a: Vector2i, b: Vector2i) -> int:
 	return maxi(dq, maxi(dr, ds))
 
 
-## Celda que contiene una posición del mundo (el enemigo la usa para detectar paredes).
+## Celda que contiene una posición del mundo (el enemigo la usa para detectar estructuras).
 func cell_at_world(pos: Vector2) -> Vector2i:
 	return pixel_to_hex(to_local(pos))
+
+
+## ¿Se puede construir en `cell`? (libre, no es el centro y no es el borde).
+func can_place(cell: Vector2i) -> bool:
+	if walls.has(cell) or towers.has(cell):
+		return false
+	if cell == Vector2i.ZERO:
+		return false  # la reina ocupa (0,0)
+	if cube_radius(cell.x, cell.y) >= grid_radius:
+		return false  # no construir en el borde donde spawnean enemigos
+	return true
 
 
 ## Devuelve la pared en `cell`, o null si no hay.
@@ -147,12 +152,8 @@ func structure_at(cell: Vector2i):
 func build_wall(cell: Vector2i) -> Wall:
 	if wall_scene == null:
 		return null
-	if walls.has(cell):
+	if not can_place(cell):
 		return null
-	if cell == Vector2i.ZERO:
-		return null  # la reina ocupa (0,0)
-	if cube_radius(cell.x, cell.y) >= grid_radius:
-		return null  # no construir en el borde donde spawnean enemigos
 
 	var wall: Wall = wall_scene.instantiate()
 	wall.grid = self
@@ -169,21 +170,12 @@ func remove_wall(cell: Vector2i) -> void:
 	walls.erase(cell)
 
 
-## Saca una torre del diccionario (la llama Tower.die al destruirse).
-func remove_tower(cell: Vector2i) -> void:
-	towers.erase(cell)
-
-
 ## Construye una torre en `cell`. Devuelve null si la celda no es válida.
 func build_tower(cell: Vector2i) -> Tower:
 	if tower_scene == null:
 		return null
-	if walls.has(cell) or towers.has(cell):
+	if not can_place(cell):
 		return null
-	if cell == Vector2i.ZERO:
-		return null  # la reina ocupa (0,0)
-	if cube_radius(cell.x, cell.y) >= grid_radius:
-		return null  # no construir en el borde donde spawnean enemigos
 
 	var tower: Tower = tower_scene.instantiate()
 	tower.grid = self
@@ -195,34 +187,51 @@ func build_tower(cell: Vector2i) -> Tower:
 	return tower
 
 
+## Saca una torre del diccionario (la llama Tower.die al destruirse).
+func remove_tower(cell: Vector2i) -> void:
+	towers.erase(cell)
+
+
 # ---------------------------------------------------------------------------
 # Dibujo.
 # ---------------------------------------------------------------------------
 
 func _draw() -> void:
-	# Recorremos todas las celdas de un panal de radio `grid_radius`.
+	# Todas las celdas del panal.
 	for q in range(-grid_radius, grid_radius + 1):
-		# En un panal hexagonal, para cada columna q, r va entre estos límites.
 		var r_min: int = maxi(-grid_radius, -q - grid_radius)
 		var r_max: int = mini(grid_radius, -q + grid_radius)
 		for r in range(r_min, r_max + 1):
 			var cell: Vector2i = Vector2i(q, r)
-			var center: Vector2 = hex_to_pixel(q, r)
 			var color: Color = hover_color if cell == hovered else fill_color
-			_draw_hexagon(center, color)
+			_draw_hexagon(hex_to_pixel(q, r), color)
+
+	# Círculo de rango de construcción (visible mientras arrastramos una tarjeta).
+	if show_build_range:
+		var lc: Vector2 = to_local(build_center)
+		draw_circle(lc, build_range_px, Color(0.3, 0.8, 0.4, 0.12))
+		draw_arc(lc, build_range_px, 0.0, TAU, 64, Color(0.3, 0.8, 0.4, 0.6), 2.0, true)
+
+	# Vista previa: celda destino (verde/rojo) + fantasma siguiendo el mouse.
+	if preview_texture != null:
+		var pc: Vector2 = hex_to_pixel(preview_cell.x, preview_cell.y)
+		var cc: Color = Color(0.2, 0.9, 0.3, 0.5) if preview_valid else Color(0.9, 0.2, 0.2, 0.5)
+		_draw_hexagon(pc, cc)
+
+		var s: float = hex_size * 1.8
+		var mp: Vector2 = to_local(preview_mouse_world)
+		draw_texture_rect(preview_texture, Rect2(mp - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, 0.7))
 
 
 ## Dibuja un solo hexágono (punto-arriba) relleno y con contorno.
 func _draw_hexagon(center: Vector2, color: Color) -> void:
 	var points := PackedVector2Array()
 	for i in 6:
-		# Punto-arriba: los vértices están a -30°, 30°, 90°, 150°, 210° y 270°.
 		var angle: float = deg_to_rad(60.0 * i - 30.0)
 		points.append(center + Vector2(cos(angle), sin(angle)) * hex_size)
 
 	draw_colored_polygon(points, color)
 
-	# Contorno: polilínea cerrada (repetimos el primer punto al final).
 	var outline := PackedVector2Array(points)
 	outline.append(points[0])
 	draw_polyline(outline, outline_color, 2.0, true)

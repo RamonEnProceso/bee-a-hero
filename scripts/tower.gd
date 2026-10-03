@@ -8,8 +8,6 @@ extends Node2D
 @export var damage: int = 2
 @export var max_health: int = 4
 @export var projectile_scene: PackedScene
-@export var body_color: Color = Color(0.9, 0.55, 0.1)
-@export var outline_color: Color = Color(0.5, 0.28, 0.05)
 
 var grid: HexGrid
 var cell: Vector2i
@@ -17,10 +15,12 @@ var hex_size: float = 32.0
 
 var health: int
 var fire_cooldown: float = 0.0
+@onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	health = max_health
+	sprite.texture = Art.tower()
 
 
 func _process(delta: float) -> void:
@@ -73,13 +73,3 @@ func take_damage(amount: int) -> void:
 func die() -> void:
 	grid.remove_tower(cell)
 	queue_free()
-
-
-func _draw() -> void:
-	# Placeholder: triángulo "aguijón" que apunta hacia donde apunta la torre.
-	var r: float = 10.0
-	var p0 := Vector2(r * 1.8, 0.0)
-	var p1 := Vector2(-r, r)
-	var p2 := Vector2(-r, -r)
-	draw_colored_polygon(PackedVector2Array([p0, p1, p2]), body_color)
-	draw_polyline(PackedVector2Array([p0, p1, p2, p0]), outline_color, 2.0, true)

@@ -9,10 +9,8 @@ extends Node2D
 @export var damage: int = 1
 @export var structure_damage: int = 1
 @export var attack_interval: float = 0.6
-## Material que suelta al ser destruida por una torre.
+## Material que suelta al ser destruida.
 @export var material_reward: int = 5
-@export var body_color: Color = Color(0.85, 0.15, 0.15)
-@export var outline_color: Color = Color(0.4, 0.05, 0.05)
 
 ## A quién persigue (siempre la reina).
 var target: Queen
@@ -23,11 +21,13 @@ var dead: bool = false
 var health: int
 # Cooldown entre golpes a una estructura.
 var attack_cooldown: float = 0.0
+@onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemies")
+	sprite.texture = Art.enemy()
 
 
 func _process(delta: float) -> void:
@@ -59,14 +59,14 @@ func _process(delta: float) -> void:
 		_hit_queen()
 
 
-## Recibe daño de los proyectiles de las torres.
+## Recibe daño de los proyectiles.
 func take_damage(amount: int) -> void:
 	health = maxi(0, health - amount)
 	if health <= 0:
 		die(true)
 
 
-## `reward` = true si la mató una torre (suelta material); false si llegó a la reina.
+## `reward` = true si la mató una torre/abeja (suelta material); false si llegó a la reina.
 func die(reward: bool = false) -> void:
 	if dead:
 		return
@@ -79,13 +79,3 @@ func die(reward: bool = false) -> void:
 func _hit_queen() -> void:
 	target.take_damage(damage)
 	die(false)
-
-
-func _draw() -> void:
-	# Placeholder visual: triángulo rojo (la avispa) apuntando a +X, rota con el nodo.
-	var r: float = 8.0
-	var p0 := Vector2(r * 1.6, 0.0)
-	var p1 := Vector2(-r, r)
-	var p2 := Vector2(-r, -r)
-	draw_colored_polygon(PackedVector2Array([p0, p1, p2]), body_color)
-	draw_polyline(PackedVector2Array([p0, p1, p2, p0]), outline_color, 1.5, true)

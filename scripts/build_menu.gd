@@ -1,77 +1,63 @@
 class_name BuildMenu
 extends Control
 
-## Menú de construcción estilo Bloons TD / Plants vs Zombies:
-## tarjetas con nombre, precio y dibujo (placeholder de forma de color).
+## Menú de tarjetas estilo Plants vs Zombies: arriba de la pantalla,
+## con el dibujo arriba y el valor (precio) abajo.
+## No usa botones: dibuja las tarjetas y main.gd hace el drag con card_at().
 
-## Se emite con el tipo elegido (Game.BuildType), o -1 si se deseleccionó.
-signal build_selected(type: int)
+var _cards: Dictionary = {}  # type -> Rect2
 
 
 func _ready() -> void:
-	# El menú no debe tragarse los clicks del mapa: deja pasar todo salvo sus botones.
+	# El menú deja pasar los clicks (solo main.gd los interpreta).
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_layout_cards()
 
-	# Tarjetas abajo al centro, calculadas con el tamaño de la pantalla.
-	var card_w := 130.0
-	var card_h := 84.0
-	var gap := 12.0
+
+func _layout_cards() -> void:
+	var card_w := 96.0
+	var card_h := 128.0
+	var gap := 14.0
 	var count: int = Game.BUILD_DEFS.size()
 	var total_w: float = count * card_w + (count - 1) * gap
-	var start_x: float = (get_viewport_rect().size.x - total_w) / 2.0
-	var y: float = get_viewport_rect().size.y - card_h - 24.0
-
-	# Un ButtonGroup hace que las tarjetas se comporten como radio-botones
-	# (seleccionar una deselecciona la otra; re-click deselecciona).
-	var group := ButtonGroup.new()
-	group.allow_unpress = true
-
+	var x0: float = (get_viewport_rect().size.x - total_w) / 2.0
+	var y0: float = 12.0
 	var i := 0
 	for type in Game.BUILD_DEFS:
-		var def: Dictionary = Game.BUILD_DEFS[type]
-		var btn := Button.new()
-		btn.toggle_mode = true
-		btn.button_group = group
-		btn.custom_minimum_size = Vector2(card_w, card_h)
-		btn.position = Vector2(start_x + i * (card_w + gap), y)
-		btn.icon = _make_icon(def)
-		btn.text = "%s  ($%d)" % [def["name"], def["cost"]]
-		btn.add_theme_font_size_override("font_size", 16)
-		btn.toggled.connect(_on_card_toggled.bind(type))
-		add_child(btn)
+		_cards[type] = Rect2(x0 + i * (card_w + gap), y0, card_w, card_h)
 		i += 1
+	queue_redraw()
 
 
-func _on_card_toggled(pressed: bool, type: int) -> void:
-	build_selected.emit(type if pressed else -1)
+## Devuelve el tipo de tarjeta bajo `pos` (coordenadas de pantalla), o -1 si ninguna.
+func card_at(pos: Vector2) -> int:
+	for type in _cards:
+		if _cards[type].has_point(pos):
+			return type
+	return -1
 
 
-## Genera el "dibujo" de una tarjeta: una textura con la forma rellena de color.
-func _make_icon(def: Dictionary) -> Texture2D:
-	var size := 48
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
+func _draw() -> void:
+	var font := ThemeDB.fallback_font
+	for type in _cards:
+		var r: Rect2 = _cards[type]
+		var def: Dictionary = Game.BUILD_DEFS[type]
+		var name: String = def["name"]
+		var cost: int = def["cost"]
+		var afford: bool = Game.can_afford(cost)
 
-	var center := Vector2(size / 2.0, size / 2.0)
-	var r := size / 2.0 - 4.0
-	var points := PackedVector2Array()
+		# Fondo de la tarjeta.
+		draw_rect(r, Color(0.16, 0.12, 0.06, 0.92), true)
+		draw_rect(r, Color(1.0, 0.85, 0.4, 0.5), false, 2.0)
 
-	match def["shape"]:
-		"hex":
-			for k in 6:
-				var a: float = deg_to_rad(60.0 * k - 30.0)
-				points.append(center + Vector2(cos(a), sin(a)) * r)
-		"tri":
-			points = PackedVector2Array([
-				center + Vector2(r, 0.0),
-				center + Vector2(-r, r),
-				center + Vector2(-r, -r),
-			])
+		# Dibujo arriba.
+		var tex: Texture2D = Art.wall() if type == Game.BuildType.WALL else Art.tower()
+		var icon_size := 56.0
+		var icon_rect := Rect2(r.position + Vector2((r.size.x - icon_size) / 2.0, 10.0), Vector2(icon_size, icon_size))
+		draw_texture_rect(tex, icon_rect, false, Color(1, 1, 1, 1.0 if afford else 0.4))
 
-	var color: Color = def["color"]
-	for y in size:
-		for x in size:
-			if Geometry2D.is_point_in_polygon(Vector2(x, y), points):
-				img.set_pixel(x, y, color)
-
-	return ImageTexture.create_from_image(img)
+		# Nombre y precio abajo (centrados).
+		var name_color := Color(1, 1, 1) if afford else Color(0.6, 0.6, 0.6)
+		draw_string(font, Vector2(r.position.x, r.position.y + 82.0), name, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 16, name_color)
+		var cost_color := Color(1.0, 0.9, 0.4) if afford else Color(0.7, 0.3, 0.3)
+		draw_string(font, Vector2(r.position.x, r.position.y + 104.0), "$%d" % cost, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 18, cost_color)

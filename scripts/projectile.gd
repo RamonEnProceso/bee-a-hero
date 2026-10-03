@@ -1,30 +1,55 @@
 class_name Projectile
 extends Node2D
 
+## Proyectil: hace homing hacia un enemigo (torre) o viaja en línea recta (disparo del jugador).
+
 @export var speed: float = 220.0
 @export var hit_radius: float = 10.0
-@export var body_color: Color = Color(1.0, 0.9, 0.3)
+## Tiempo máximo de vida, para que no queden volando para siempre.
+@export var lifetime: float = 2.5
 
-## A quién persigue el proyectil.
+## Si está seteado, el proyectil hace homing hacia este enemigo.
 var target: Enemy
+## Si target == null, el proyectil viaja en esta dirección (disparo del jugador).
+var direction: Vector2 = Vector2.ZERO
 var damage: int = 1
+@onready var sprite: Sprite2D = $Sprite2D
+
+
+func _ready() -> void:
+	sprite.texture = Art.projectile()
 
 
 func _process(delta: float) -> void:
-	# Si el objetivo ya no existe, el proyectil se descarta.
-	if target == null or not is_instance_valid(target) or target.dead:
+	lifetime -= delta
+	if lifetime <= 0.0:
 		queue_free()
 		return
 
-	var dir: Vector2 = (target.global_position - global_position).normalized()
+	# Si tenía objetivo y ya no existe, se descarta.
+	if target != null and (not is_instance_valid(target) or target.dead):
+		queue_free()
+		return
+
+	var dir: Vector2
+	if target != null:
+		dir = (target.global_position - global_position).normalized()
+	else:
+		dir = direction
+
 	global_position += dir * speed * delta
 	rotation = dir.angle()
 
-	# Al alcanzarlo, le hace daño y desaparece.
-	if global_position.distance_to(target.global_position) <= hit_radius:
-		target.take_damage(damage)
-		queue_free()
-
-
-func _draw() -> void:
-	draw_circle(Vector2.ZERO, 4.0, body_color)
+	if target != null:
+		# Homing: al alcanzar el objetivo, le hace daño.
+		if global_position.distance_to(target.global_position) <= hit_radius:
+			target.take_damage(damage)
+			queue_free()
+	else:
+		# Línea recta: daña al primer enemigo que toque.
+		for node in get_tree().get_nodes_in_group("enemies"):
+			var e := node as Enemy
+			if e != null and global_position.distance_to(e.global_position) <= hit_radius + 8.0:
+				e.take_damage(damage)
+				queue_free()
+				return
