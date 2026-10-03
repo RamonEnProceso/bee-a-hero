@@ -9,7 +9,7 @@ signal slots_changed(used: int, capacity: int)
 signal free_towers_changed(count: int)
 
 ## Tipos de estructura que se pueden construir.
-enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BIG_TOWER, BASE, GUARDERIA, CULTIVADORA, GUARDIA, LONG_RANGE, PIRANAS }
+enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BASE, GUARDERIA, CULTIVADORA, GUARDIA, LONG_RANGE }
 
 ## Definiciones de lo construible: nombre y costo.
 ## El orden de las claves es el orden en que aparecen las tarjetas del menú.
@@ -19,13 +19,11 @@ const BUILD_DEFS := {
 	BuildType.TRAP: { "name": "Pared trampa", "cost": 6 },
 	BuildType.TOWER: { "name": "Torre", "cost": 30 },
 	BuildType.DOUBLE_TOWER: { "name": "Torre doble", "cost": 90 },
-	BuildType.BIG_TOWER: { "name": "Cañón", "cost": 200 },
 	BuildType.BASE: { "name": "Base", "cost": 70 },
 	BuildType.GUARDERIA: { "name": "Guardería", "cost": 100 },
 	BuildType.CULTIVADORA: { "name": "Cultivadora", "cost": 140 },
 	BuildType.GUARDIA: { "name": "Guardia", "cost": 40 },
 	BuildType.LONG_RANGE: { "name": "Largo alcance", "cost": 50 },
-	BuildType.PIRANAS: { "name": "Pirañas", "cost": 50 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
@@ -40,22 +38,20 @@ var free_towers: int = 0
 ## Al inicio solo se puede crear una; los edificios amplían esta capacidad.
 ## (Las paredes y trampas NO consumen slots: son libres.)
 
-## Cuántos slots de abeja consume cada tipo (las torres y aliados normales, 1;
-## las pirañas ocupan 4). Las paredes y trampas NO consumen: no están acá.
+## Cuántos slots de abeja consume cada tipo (las torres y aliados, 1 cada uno).
+## Las paredes y trampas NO consumen: no están acá.
 const SLOT_COST := {
 	BuildType.TOWER: 1,
 	BuildType.DOUBLE_TOWER: 1,
-	BuildType.BIG_TOWER: 1,
 	BuildType.GUARDIA: 1,
 	BuildType.LONG_RANGE: 1,
-	BuildType.PIRANAS: 4,
 }
 
 ## Capacidad máxima de abejas colocables. Arranca en 1.
 var slot_capacity: int = 1
 ## Abejas colocadas en orden (primera en entrar, última en salir). Guarda los nodos.
 var _slotted: Array[Node] = []
-## Cuántos slots consume cada abeja colocada (la piraña vale 4).
+## Cuántos slots consume cada abeja colocada (las torres y aliados valen 1).
 var _slot_costs: Dictionary = {}
 
 

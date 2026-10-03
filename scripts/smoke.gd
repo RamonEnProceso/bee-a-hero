@@ -70,7 +70,6 @@ func _expand() -> void:
 ## Daña a cada torre cuya celda esté cubierta por el humo.
 func _damage_towers() -> void:
 	# Iteramos una copia de las claves: si una torre muere, se borra de `grid.towers`.
-	# El cañón ocupa 4 celdas (mismo nodo bajo 4 claves); lo dañamos UNA sola vez.
 	var seen: Dictionary = {}
 	var cells: Array = grid.towers.keys()
 	for cell in cells:

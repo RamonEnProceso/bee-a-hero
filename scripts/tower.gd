@@ -11,7 +11,7 @@ extends Node2D
 
 var grid: HexGrid
 var cell: Vector2i
-## Celdas que ocupa esta torre (1 para las normales, 4 para el cañón).
+## Celdas que ocupa esta torre (una sola).
 var cells: Array[Vector2i] = []
 var hex_size: float = 32.0
 
@@ -27,7 +27,7 @@ func _ready() -> void:
 	Fx.squash(sprite)
 
 
-## Textura de la torre (la doble y el cañón devuelven la suya).
+## Textura de la torre (la doble devuelve la suya).
 func _texture() -> Texture2D:
 	return Art.tower()
 
@@ -75,7 +75,7 @@ func _shoot(target: Enemy) -> void:
 
 
 ## Crea el proyectil que viaja hacia `target`. Las subclases lo sobrescriben
-## (la torre doble recarga más rápido, el cañón un tiro grande).
+## (la torre doble recarga más rápido).
 func _spawn_projectile(target: Enemy) -> void:
 	var p: Projectile = projectile_scene.instantiate()
 	p.target = target

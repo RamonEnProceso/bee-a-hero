@@ -25,10 +25,8 @@ static func preload_all() -> void:
 	reinforced_wall()
 	trap()
 	double_tower()
-	big_tower()
 	guardia()
 	long_range()
-	piranas()
 	bomb_wasp()
 	hormiga()
 	polilla()
@@ -53,8 +51,6 @@ static func build_icon(type: int) -> Texture2D:
 			return trap()
 		Game.BuildType.DOUBLE_TOWER:
 			return double_tower()
-		Game.BuildType.BIG_TOWER:
-			return big_tower()
 		Game.BuildType.BASE:
 			return building()
 		Game.BuildType.GUARDERIA:
@@ -65,8 +61,6 @@ static func build_icon(type: int) -> Texture2D:
 			return guardia()
 		Game.BuildType.LONG_RANGE:
 			return long_range()
-		Game.BuildType.PIRANAS:
-			return piranas()
 	return wall()
 
 
@@ -244,25 +238,6 @@ static func double_tower() -> Texture2D:
 	return _cache["double_tower"]
 
 
-## Cañón: cuerpo oscuro + cañón de acero (ocupa 2x2 hexágonos).
-static func big_tower() -> Texture2D:
-	if not _cache.has("big_tower"):
-		var size := 128
-		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-		img.fill(Color(0, 0, 0, 0))
-		var body_c := Vector2(48, 64)
-		var body_color := Color(0.25, 0.24, 0.28)
-		var barrel_color := Color(0.5, 0.52, 0.6)
-		for y in size:
-			for x in size:
-				var p := Vector2(x + 0.5, y + 0.5)
-				if p.distance_to(body_c) <= 34.0:
-					img.set_pixel(x, y, body_color)
-				if p.x >= 64.0 and p.x <= 122.0 and absf(p.y - 64.0) <= 12.0:
-					img.set_pixel(x, y, barrel_color)
-		_cache["big_tower"] = ImageTexture.create_from_image(img)
-	return _cache["big_tower"]
-
 
 ## Guardia: abeja gorda naranja, cuerpo a cuerpo.
 static func guardia() -> Texture2D:
@@ -277,12 +252,6 @@ static func long_range() -> Texture2D:
 		_cache["long_range"] = _bee_texture_colored(40, 10.0, Color(0.55, 0.8, 1.0), Color(0.1, 0.22, 0.35))
 	return _cache["long_range"]
 
-
-## Pirañas: enjambre chico rojo (ocupa 4 slots, corto alcance).
-static func piranas() -> Texture2D:
-	if not _cache.has("piranas"):
-		_cache["piranas"] = _bee_texture_colored(36, 8.0, Color(0.9, 0.25, 0.2), Color(0.35, 0.1, 0.08))
-	return _cache["piranas"]
 
 
 ## Edificio base: hexágono dorado con puerta oscura (colmena/ciudadela).

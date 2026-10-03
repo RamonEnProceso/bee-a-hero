@@ -20,8 +20,6 @@ extends Node2D
 @export var trap_wall_scene: PackedScene
 ## Escena de la torre doble (recarga a la mitad de tiempo).
 @export var double_tower_scene: PackedScene
-## Escena del cañón (ocupa 2x2 hexágonos, tiros potentes).
-@export var big_tower_scene: PackedScene
 ## Escena del edificio base (ocupa un panal de 7 hexágonos, habilita 3 slots).
 @export var building_scene: PackedScene
 ## Escena de la guardería (regala una torre por oleada).
@@ -32,8 +30,6 @@ extends Node2D
 @export var guardia_scene: PackedScene
 ## Escena del aliado de largo alcance (francotirador).
 @export var long_range_scene: PackedScene
-## Escena del aliado pirañas (enjambre de 4 slots, corto alcance).
-@export var piranas_scene: PackedScene
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
@@ -46,8 +42,6 @@ var traps: Dictionary = {}
 # Edificios: clave = celda (Vector2i), valor = nodo Building. Ocupan 7 celdas cada uno.
 var buildings: Dictionary = {}
 
-## Desplazamientos que ocupa el cañón (un "2x2" de hexágonos contiguos).
-const BIG_TOWER_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(1, -1)]
 ## Desplazamientos que ocupa un edificio base: un panal de 7 hexágonos (el centro y
 ## sus 6 vecinos), para poder reemplazar después el sprite por un hexágono grande.
 const BUILDING_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]
@@ -171,13 +165,8 @@ func can_place(cell: Vector2i) -> bool:
 	return true
 
 
-## ¿Se puede construir el `type` en `cell`? Valida todo el footprint (el cañón ocupa 2x2).
+## ¿Se puede construir el `type` en `cell`? Valida todo el footprint (los edificios ocupan 7).
 func can_place_build(type: int, cell: Vector2i) -> bool:
-	if type == Game.BuildType.BIG_TOWER:
-		for c in _big_tower_cells(cell):
-			if not can_place(c):
-				return false
-		return true
 	if _is_building(type):
 		for c in _building_cells(cell):
 			if not can_place(c):
@@ -230,8 +219,6 @@ func build(type: int, cell: Vector2i) -> Node2D:
 			return build_tower(cell)
 		Game.BuildType.DOUBLE_TOWER:
 			return build_double_tower(cell)
-		Game.BuildType.BIG_TOWER:
-			return build_big_tower(cell)
 		Game.BuildType.BASE:
 			return build_building(cell)
 		Game.BuildType.GUARDERIA:
@@ -242,8 +229,6 @@ func build(type: int, cell: Vector2i) -> Node2D:
 			return build_guardia(cell)
 		Game.BuildType.LONG_RANGE:
 			return build_long_range(cell)
-		Game.BuildType.PIRANAS:
-			return build_piranas(cell)
 	return null
 
 
@@ -336,28 +321,7 @@ func build_double_tower(cell: Vector2i) -> Tower:
 	return tower
 
 
-## Construye un cañón (2x2 hexágonos) anclado en `cell`. El nodo queda centrado
-## en el centro geométrico del footprint y se anota bajo las 4 celdas.
-func build_big_tower(cell: Vector2i) -> Tower:
-	if big_tower_scene == null:
-		return null
-	if not can_place_build(Game.BuildType.BIG_TOWER, cell):
-		return null
-
-	var cells := _big_tower_cells(cell)
-	var tower: Tower = big_tower_scene.instantiate()
-	tower.grid = self
-	tower.cell = cell
-	tower.hex_size = hex_size
-	tower.cells = cells
-	tower.position = _footprint_center(cells)
-	for c in cells:
-		towers[c] = tower
-	add_child(tower)
-	return tower
-
-
-## Construye un aliado (guardia, largo alcance o pirañas) en `cell`.
+## Construye un aliado (guardia o largo alcance) en `cell`.
 ## Como extienden Tower, se guardan en `towers` (los enemigos los atacan).
 func _build_ally_with(scene: PackedScene, cell: Vector2i) -> Ally:
 	if scene == null:
@@ -384,11 +348,6 @@ func build_guardia(cell: Vector2i) -> Ally:
 ## Construye un aliado de largo alcance en `cell`.
 func build_long_range(cell: Vector2i) -> Ally:
 	return _build_ally_with(long_range_scene, cell)
-
-
-## Construye unas pirañas en `cell` (ocupa 1 hex pero 4 slots).
-func build_piranas(cell: Vector2i) -> Ally:
-	return _build_ally_with(piranas_scene, cell)
 
 
 ## Construye un edificio base en `anchor`.
@@ -442,22 +401,13 @@ func _building_cells(anchor: Vector2i) -> Array[Vector2i]:
 	return out
 
 
-## Saca una torre del diccionario (la llama Tower.die al destruirse). Borra todas
-## las celdas que ocupa (una torre normal ocupa 1, el cañón 4).
+## Saca una torre del diccionario (la llama Tower.die al destruirse). Borra la celda que ocupa.
 func remove_tower(tower: Tower) -> void:
 	for c in tower.cells:
 		towers.erase(c)
 
 
-## Las celdas (axiales) que ocupa un cañón anclado en `anchor`.
-func _big_tower_cells(anchor: Vector2i) -> Array[Vector2i]:
-	var out: Array[Vector2i] = []
-	for d in BIG_TOWER_FOOTPRINT:
-		out.append(anchor + d)
-	return out
-
-
-## Centro en píxeles de un grupo de celdas (para ubicar el cañón sobre su 2x2).
+## Centro en píxeles de un grupo de celdas (para ubicar el edificio sobre su panal).
 func _footprint_center(cells: Array[Vector2i]) -> Vector2:
 	var sum: Vector2 = Vector2.ZERO
 	for c in cells:
@@ -488,20 +438,15 @@ func _draw() -> void:
 	# Vista previa: celda(s) destino (verde/rojo) + fantasma siguiendo el mouse.
 	if preview_texture != null:
 		var cc: Color = Color(0.2, 0.9, 0.3, 0.5) if preview_valid else Color(0.9, 0.2, 0.2, 0.5)
-		# El cañón pinta su footprint 2x2, el edificio sus 7 celdas; el resto una sola.
-		if preview_type == Game.BuildType.BIG_TOWER:
-			for c in _big_tower_cells(preview_cell):
-				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
-		elif _is_building(preview_type):
+		# El edificio pinta sus 7 celdas; el resto una sola.
+		if _is_building(preview_type):
 			for c in _building_cells(preview_cell):
 				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
 		else:
 			_draw_hexagon(hex_to_pixel(preview_cell.x, preview_cell.y), cc)
 
 		var s: float = hex_size * 1.8
-		if preview_type == Game.BuildType.BIG_TOWER:
-			s = hex_size * 4.5
-		elif _is_building(preview_type):
+		if _is_building(preview_type):
 			s = hex_size * 4.0
 		var mp: Vector2 = to_local(preview_mouse_world)
 		draw_texture_rect(preview_texture, Rect2(mp - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, 0.7))

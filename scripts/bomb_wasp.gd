@@ -32,7 +32,7 @@ func _explode() -> void:
 	get_parent().add_child(e)
 	e.global_position = global_position
 
-	# Daña cada torre/aliado dentro del radio (sin contar dos veces el cañón 2x2).
+	# Daña cada torre/aliado dentro del radio.
 	var seen: Dictionary = {}
 	for cell in hex_grid.towers.keys():
 		var t: Tower = hex_grid.towers[cell]

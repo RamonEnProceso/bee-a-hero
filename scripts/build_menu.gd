@@ -13,13 +13,11 @@ const TOOLTIPS := {
 	Game.BuildType.TRAP: "Daña al que la toca",
 	Game.BuildType.TOWER: "Dispara a los enemigos",
 	Game.BuildType.DOUBLE_TOWER: "Dispara el doble de rápido",
-	Game.BuildType.BIG_TOWER: "Tiros fuertes de largo alcance",
 	Game.BuildType.BASE: "Desbloquea 3 abejas más",
 	Game.BuildType.GUARDERIA: "Torre gratis para colocar por oleada",
 	Game.BuildType.CULTIVADORA: "Genera 100 de miel por oleada",
 	Game.BuildType.GUARDIA: "Pelea cuerpo a cuerpo",
 	Game.BuildType.LONG_RANGE: "Dispara lejos, lento",
-	Game.BuildType.PIRANAS: "Enjambre veloz (4 slots)",
 }
 
 var _cards: Dictionary = {}  # type -> Rect2

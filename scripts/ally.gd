@@ -3,10 +3,10 @@ extends Tower
 
 ## Base de los aliados: abejas defensoras que ocupan un slot y pelean por la reina.
 ## Reutiliza todo lo de Tower (apuntar al enemigo más cercano, recibir daño, slot).
-## Cada subtipo cambia textura y su forma de atacar: el guardia y las pirañas pegan
+## Cada subtipo cambia textura y su forma de atacar: el guardia pega
 ## cuerpo a cuerpo; la de largo alcance dispara un aguijón.
 
-## Posición de casa (la celda donde se colocó). Las pirañas "vuelven" acá.
+## Posición de casa (la celda donde se colocó). El guardia "vuelve" acá.
 var home_position: Vector2
 
 var _lunge_tween: Tween
