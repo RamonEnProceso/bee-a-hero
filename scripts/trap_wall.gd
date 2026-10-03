@@ -18,6 +18,7 @@ var hex_size: float = 32.0
 
 func _ready() -> void:
 	sprite.texture = Art.trap()
+	Fx.squash(sprite)
 
 
 func _process(_delta: float) -> void:

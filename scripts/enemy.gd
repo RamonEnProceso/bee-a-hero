@@ -28,6 +28,9 @@ extends Node2D
 ## Se emite al morir (para que el spawner cuente las bajas de la oleada).
 signal died
 
+## Escena de la mini explosión que aparece al morir.
+const EXPLOSION_SCENE: PackedScene = preload("res://scenes/Explosion.tscn")
+
 ## A quién persigue (siempre la reina).
 var target: Queen
 ## Referencia a la grilla para detectar estructuras en el camino.
@@ -39,6 +42,7 @@ var health: int
 var attack_cooldown: float = 0.0
 # Velocidad extra que empuja al enemigo al recibir daño.
 var _knockback: Vector2 = Vector2.ZERO
+var _hit_tween: Tween
 @onready var sprite: Sprite2D = $Sprite2D
 
 
@@ -101,8 +105,21 @@ func take_damage(amount: int, hit_dir: Vector2 = Vector2.ZERO) -> void:
 	health = maxi(0, health - amount)
 	if hit_dir != Vector2.ZERO:
 		_knockback = hit_dir * knockback_force * (1.0 - knockback_resistance)
+	_hit_flash()
 	if health <= 0:
 		die(true)
+
+
+## Al recibir daño: se pone blanco y se achica un poco, y vuelve a la normalidad.
+func _hit_flash() -> void:
+	if _hit_tween != null and _hit_tween.is_valid():
+		_hit_tween.kill()
+	# Un modulate alto satura los canales de color y se ve blanco.
+	sprite.modulate = Color(6.0, 6.0, 6.0, 1.0)
+	sprite.scale = Vector2(body_scale, body_scale) * 0.9
+	_hit_tween = create_tween()
+	_hit_tween.tween_property(sprite, "scale", Vector2(body_scale, body_scale), 0.1)
+	_hit_tween.parallel().tween_property(sprite, "modulate", Color.WHITE, 0.1)
 
 
 ## `reward` = true si la mató una torre/abeja (suelta material); false si llegó a la reina.
@@ -112,8 +129,17 @@ func die(reward: bool = false) -> void:
 	dead = true
 	died.emit()
 	if reward:
+		_spawn_explosion()
 		_drop_pickup()
 	queue_free()
+
+
+## Mini explosión al morir (feedback visual).
+func _spawn_explosion() -> void:
+	var e: Explosion = EXPLOSION_SCENE.instantiate()
+	get_parent().add_child(e)
+	e.global_position = global_position
+	e.scale = Vector2(body_scale, body_scale)
 
 
 ## El enemigo se retira del escenario sin soltar material (pájaro/gato/oso).

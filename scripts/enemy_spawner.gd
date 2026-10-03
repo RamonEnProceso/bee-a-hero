@@ -81,6 +81,9 @@ func _start_next_wave() -> void:
 	_to_spawn = _queue.size()
 	_alive = 0
 	wave_started.emit(wave)
+	# Desde la oleada 2, un círculo de enemigos se cierra desde todos los lados.
+	if wave >= 2:
+		_spawn_encirclement(wave)
 
 
 ## Arma la lista de escenas de la oleada `w` (mezclada) según qué tipos ya aparecieron.
@@ -121,8 +124,13 @@ func _spawn_one() -> void:
 	if ring.is_empty():
 		return
 	var cell: Vector2i = ring[randi() % ring.size()]
-
 	var scene: PackedScene = _queue.pop_back()
+	_spawn_at(scene, cell)
+	_to_spawn -= 1
+
+
+## Instancia `scene` en la celda `cell` y lo configura según su tipo.
+func _spawn_at(scene: PackedScene, cell: Vector2i) -> void:
 	var node: Node2D = scene.instantiate()
 
 	# Los enemigos persiguen a la reina y se cuentan como bajas de la oleada.
@@ -140,7 +148,25 @@ func _spawn_one() -> void:
 	node.global_position = hex_grid.world_position_of(cell.x, cell.y)
 	add_child(node)
 
-	_to_spawn -= 1
+
+## Círculo de enemigos que se cierra hacia el centro desde todos los lados.
+## Repartidos parejo por el anillo, todos caminan hacia la reina a la vez.
+func _spawn_encirclement(w: int) -> void:
+	if enemy_scene == null:
+		return
+	var ring: Array[Vector2i] = hex_grid.get_ring_cells()
+	if ring.is_empty():
+		return
+	var count: int = mini(6 + w, ring.size())
+	# Ordenamos el anillo por ángulo para que queden parejos alrededor del centro.
+	var center: Vector2 = hex_grid.world_position_of(0, 0)
+	ring.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		var pa: Vector2 = hex_grid.world_position_of(a.x, a.y) - center
+		var pb: Vector2 = hex_grid.world_position_of(b.x, b.y) - center
+		return pa.angle() < pb.angle())
+	for i in count:
+		var idx: int = int(round(float(i) * float(ring.size()) / float(count))) % ring.size()
+		_spawn_at(enemy_scene, ring[idx])
 
 
 ## Cuando muere un enemigo de la oleada, contamos la baja.

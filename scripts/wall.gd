@@ -16,12 +16,14 @@ var cell: Vector2i
 var hex_size: float = 32.0
 
 var health: int
+var _hit_tween: Tween
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	health = max_health
 	sprite.texture = _texture()
+	Fx.squash(sprite)
 
 
 ## Textura de la pared (cada subtipo devuelve la suya).
@@ -34,8 +36,20 @@ func take_damage(amount: int, attacker: Enemy = null) -> void:
 	health = maxi(0, health - amount)
 	if attacker != null and thorns > 0:
 		attacker.take_damage(thorns)
+	_shake()
 	if health <= 0:
 		_break()
+
+
+## Vibra al recibir un golpe (las paredes solo vibran, no cambian de color).
+func _shake() -> void:
+	if _hit_tween != null and _hit_tween.is_valid():
+		_hit_tween.kill()
+	sprite.position = Vector2.ZERO
+	_hit_tween = create_tween()
+	_hit_tween.tween_property(sprite, "position", Vector2(3.0, 0.0), 0.035)
+	_hit_tween.tween_property(sprite, "position", Vector2(-3.0, 0.0), 0.035)
+	_hit_tween.tween_property(sprite, "position", Vector2.ZERO, 0.035)
 
 
 func _break() -> void:

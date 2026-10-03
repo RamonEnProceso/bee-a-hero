@@ -17,12 +17,19 @@ var hex_size: float = 32.0
 
 var health: int
 var fire_cooldown: float = 0.0
+var _hit_tween: Tween
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	health = max_health
-	sprite.texture = Art.tower()
+	sprite.texture = _texture()
+	Fx.squash(sprite)
+
+
+## Textura de la torre (la doble y el cañón devuelven la suya).
+func _texture() -> Texture2D:
+	return Art.tower()
 
 
 func _process(delta: float) -> void:
@@ -80,8 +87,20 @@ func _spawn_projectile(target: Enemy) -> void:
 ## Recibe daño de los enemigos que la atacan.
 func take_damage(amount: int, _attacker: Enemy = null) -> void:
 	health = maxi(0, health - amount)
+	_hit_flash()
 	if health <= 0:
 		die()
+
+
+## Al recibir daño se achica y se pone roja, y vuelve a la normalidad.
+func _hit_flash() -> void:
+	if _hit_tween != null and _hit_tween.is_valid():
+		_hit_tween.kill()
+	sprite.modulate = Color(1.0, 0.3, 0.3)
+	sprite.scale = Vector2(0.7, 0.7)
+	_hit_tween = create_tween()
+	_hit_tween.tween_property(sprite, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_hit_tween.parallel().tween_property(sprite, "modulate", Color.WHITE, 0.15)
 
 
 ## Al destruirse, se saca de la grilla para liberar la celda.

@@ -5,6 +5,11 @@ extends Tower
 ## Igual de frágil que la torre normal, pero el doble de presión.
 
 
+## Textura propia: dos aguijones.
+func _texture() -> Texture2D:
+	return Art.double_tower()
+
+
 ## En vez de un proyectil, dispara uno a cada uno de los dos enemigos más cercanos.
 func _shoot(_target: Enemy) -> void:
 	var list := _enemies_in_range()
