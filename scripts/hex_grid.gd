@@ -22,7 +22,7 @@ extends Node2D
 @export var double_tower_scene: PackedScene
 ## Escena del cañón (ocupa 2x2 hexágonos, tiros potentes).
 @export var big_tower_scene: PackedScene
-## Escena del edificio base (ocupa 4 hexágonos, habilita 3 slots).
+## Escena del edificio base (ocupa un panal de 7 hexágonos, habilita 3 slots).
 @export var building_scene: PackedScene
 ## Escena de la guardería (regala una torre por oleada).
 @export var guarderia_scene: PackedScene
@@ -43,13 +43,14 @@ var walls: Dictionary = {}
 var towers: Dictionary = {}
 # Trampas (pared trampa): clave = celda (Vector2i), valor = nodo TrapWall. No bloquean.
 var traps: Dictionary = {}
-# Edificios: clave = celda (Vector2i), valor = nodo Building. Ocupan 4 celdas cada uno.
+# Edificios: clave = celda (Vector2i), valor = nodo Building. Ocupan 7 celdas cada uno.
 var buildings: Dictionary = {}
 
 ## Desplazamientos que ocupa el cañón (un "2x2" de hexágonos contiguos).
 const BIG_TOWER_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(1, -1)]
-## Desplazamientos que ocupa un edificio base (2x2 de 4 hexágonos contiguos).
-const BUILDING_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(1, -1)]
+## Desplazamientos que ocupa un edificio base: un panal de 7 hexágonos (el centro y
+## sus 6 vecinos), para poder reemplazar después el sprite por un hexágono grande.
+const BUILDING_FOOTPRINT := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]
 
 # --- Vista previa mientras arrastramos una tarjeta (main.gd la actualiza) ---
 var show_build_range: bool = false
@@ -185,7 +186,7 @@ func can_place_build(type: int, cell: Vector2i) -> bool:
 	return can_place(cell)
 
 
-## ¿El `type` es un edificio (ocupa 4 hexágonos)?
+## ¿El `type` es un edificio (ocupa un panal de 7 hexágonos)?
 func _is_building(type: int) -> bool:
 	return type == Game.BuildType.BASE or type == Game.BuildType.GUARDERIA or type == Game.BuildType.CULTIVADORA
 
@@ -405,8 +406,8 @@ func build_cultivadora(anchor: Vector2i) -> Building:
 	return _build_building_with(cultivadora_scene, anchor)
 
 
-## Edificio genérico (4 hexágonos) anclado en `anchor`. El nodo queda centrado en
-## el centro geométrico del footprint y se anota bajo sus 4 celdas.
+## Edificio genérico (panal de 7 hexágonos) anclado en `anchor`. El nodo queda centrado en
+## el centro geométrico del footprint y se anota bajo sus 7 celdas.
 func _build_building_with(scene: PackedScene, anchor: Vector2i) -> Building:
 	if scene == null:
 		return null
@@ -487,7 +488,7 @@ func _draw() -> void:
 	# Vista previa: celda(s) destino (verde/rojo) + fantasma siguiendo el mouse.
 	if preview_texture != null:
 		var cc: Color = Color(0.2, 0.9, 0.3, 0.5) if preview_valid else Color(0.9, 0.2, 0.2, 0.5)
-		# El cañón pinta su footprint 2x2, el edificio sus 4 celdas; el resto una sola.
+		# El cañón pinta su footprint 2x2, el edificio sus 7 celdas; el resto una sola.
 		if preview_type == Game.BuildType.BIG_TOWER:
 			for c in _big_tower_cells(preview_cell):
 				_draw_hexagon(hex_to_pixel(c.x, c.y), cc)
@@ -501,7 +502,7 @@ func _draw() -> void:
 		if preview_type == Game.BuildType.BIG_TOWER:
 			s = hex_size * 4.5
 		elif _is_building(preview_type):
-			s = hex_size * 4.5
+			s = hex_size * 6.0
 		var mp: Vector2 = to_local(preview_mouse_world)
 		draw_texture_rect(preview_texture, Rect2(mp - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color(1, 1, 1, 0.7))
 
