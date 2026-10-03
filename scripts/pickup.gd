@@ -1,12 +1,17 @@
 class_name Pickup
 extends Node2D
 
-## Gota de miel que suelta un enemigo al morir; la abeja protagonista la recolecta al acercarse.
+## Gota de miel que suelta un enemigo al morir. La abeja protagonista la recolecta:
+## si se acerca, la gota sale volando hacia ella (como los orbes de God of War).
 
 ## Cuánta miel da al recolectarla.
 @export var value: int = 5
-## Distancia a la que la abeja la recoge.
-@export var pickup_radius: float = 24.0
+## Distancia a la que empieza a ser atraída hacia la abeja.
+@export var magnet_radius: float = 90.0
+## Distancia a la que se considera recolectada.
+@export var collect_radius: float = 14.0
+## Velocidad con la que vuela hacia la abeja.
+@export var magnet_speed: float = 320.0
 ## Tiempo máximo de vida, para que no queden gotas viejas por ahí.
 @export var lifetime: float = 20.0
 
@@ -27,18 +32,23 @@ func _process(delta: float) -> void:
 		if _bee == null:
 			return
 
-	# Se recoge cuando la abeja está lo bastante cerca.
-	if global_position.distance_to(_bee.global_position) <= pickup_radius:
+	var dist: float = global_position.distance_to(_bee.global_position)
+
+	# Se recoge al tocarla.
+	if dist <= collect_radius:
 		Game.gain(value)
 		queue_free()
 		return
+
+	# Si la abeja está cerca, la gota sale volando hacia ella.
+	if dist <= magnet_radius:
+		global_position = global_position.move_toward(_bee.global_position, magnet_speed * delta)
+	else:
+		# Quieta: flota un poquito para que se vea viva.
+		_t += delta
+		sprite.position.y = sin(_t * 3.0) * 2.0
 
 	# Desaparece si no la recogen a tiempo.
 	lifetime -= delta
 	if lifetime <= 0.0:
 		queue_free()
-		return
-
-	# Flota un poquito para que se vea viva.
-	_t += delta
-	sprite.position.y = sin(_t * 3.0) * 2.0

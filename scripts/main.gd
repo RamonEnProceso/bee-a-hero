@@ -9,6 +9,7 @@ extends Node2D
 @onready var material_label: Label = $UILayer/MaterialLabel
 @onready var game_over_label: Label = $UILayer/GameOverLabel
 @onready var wave_label: Label = $UILayer/WaveLabel
+@onready var wave_banner: Label = $UILayer/WaveBanner
 
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
@@ -109,6 +110,25 @@ func _on_materials_changed(_value: int) -> void:
 
 func _on_wave_started(wave: int) -> void:
 	wave_label.text = "Oleada %d" % wave
+	_announce_wave("Oleada %d" % wave)
+
+
+## Muestra el nombre de la oleada en grande al centro: aparece rápido y se va con un fade lento.
+func _announce_wave(text: String) -> void:
+	wave_banner.text = text
+	wave_banner.pivot_offset = wave_banner.size / 2.0
+	wave_banner.modulate.a = 0.0
+	wave_banner.scale = Vector2(0.8, 0.8)
+	wave_banner.visible = true
+
+	var tw := create_tween()
+	# Aparece rápido (pop + fade in).
+	tw.tween_property(wave_banner, "modulate:a", 1.0, 0.15)
+	tw.parallel().tween_property(wave_banner, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# Se mantiene un momento y desaparece lento.
+	tw.tween_interval(1.0)
+	tw.tween_property(wave_banner, "modulate:a", 0.0, 1.2)
+	tw.tween_callback(func() -> void: wave_banner.visible = false)
 
 
 func _on_queen_died() -> void:

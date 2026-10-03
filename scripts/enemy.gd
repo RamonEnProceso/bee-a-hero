@@ -45,9 +45,12 @@ func _process(delta: float) -> void:
 	var dir: Vector2 = (target.global_position - global_position).normalized()
 
 	# Si hay una estructura (pared o torre) justo delante, nos detenemos y la atacamos.
+	# Revisamos la celda de adelante y también la nuestra (por si ya estamos encima).
 	if hex_grid != null:
 		var lookahead: Vector2 = global_position + dir * (hex_grid.hex_size * 0.5)
 		var structure = hex_grid.structure_at(hex_grid.cell_at_world(lookahead))
+		if structure == null:
+			structure = hex_grid.structure_at(hex_grid.cell_at_world(global_position))
 		if structure != null:
 			rotation = dir.angle()
 			if attack_cooldown <= 0.0:
