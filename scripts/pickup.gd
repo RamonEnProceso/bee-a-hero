@@ -38,6 +38,7 @@ func _process(delta: float) -> void:
 	# Se recoge al tocarla.
 	if dist <= collect_radius:
 		Game.gain(value)
+		Fx.float_text(get_parent(), global_position, "+%d" % value)
 		queue_free()
 		return
 

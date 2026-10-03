@@ -78,7 +78,7 @@ bomb_wasp_scene = ExtResource("30_bomb")
 hormiga_scene = ExtResource("31_hormiga")
 polilla_scene = ExtResource("32_polilla")
 enemies_per_wave = 2
-time_between_waves = 10.0
+time_between_waves = 30.0
 
 [node name="BuilderBee" type="Node2D" parent="." unique_id=874248090]
 script = ExtResource("8_bee")

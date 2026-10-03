@@ -50,6 +50,9 @@ func _finish_construction() -> void:
 	sprite.modulate = Color.WHITE
 	Fx.squash(sprite)
 	Game.increase_capacity(slots_granted)
+	# Feedback: sonido y ráfaga de partículas (momento de "desbloqueo").
+	Sfx.ding()
+	Fx.burst(get_parent(), global_position, Color(1.0, 0.85, 0.4), 16)
 
 
 ## Hook al final de cada oleada: si está en obra, avanza; si ya está listo, da su recompensa.
@@ -103,4 +106,6 @@ func die() -> void:
 			node.die()
 		elif is_instance_valid(node):
 			node.queue_free()
+	# Feedback: la cámara se sacude al perder un edificio.
+	Fx.shake(get_viewport().get_camera_2d())
 	queue_free()

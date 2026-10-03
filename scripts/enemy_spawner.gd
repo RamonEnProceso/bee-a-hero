@@ -34,7 +34,8 @@ extends Node2D
 ## Segundos entre un spawn y el siguiente dentro de la oleada.
 @export var spawn_interval: float = 1.5
 ## Pausa entre el final de una oleada y el inicio de la siguiente.
-@export var time_between_waves: float = 10.0
+## Es la fase de recolección (30 s según el diseño): tiempo para juntar miel y construir.
+@export var time_between_waves: float = 30.0
 ## Espera antes de la primera oleada (tiempo para construir el primer edificio).
 @export var first_wave_delay: float = 12.0
 ## Factor de velocidad de las primeras oleadas (1.0 = velocidad normal).

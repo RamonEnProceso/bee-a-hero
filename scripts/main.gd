@@ -116,6 +116,8 @@ func _try_build(type: int, cell: Vector2i) -> void:
 		var cost: int = Game.slot_cost(type)
 		if cost > 0:
 			Game.register_slotted(built_node, cost)
+		# Feedback: ráfaga de partículas al colocar.
+		Fx.burst(self, built_node.global_position)
 
 
 ## Coloca un anillo de abejas suicidas alrededor de la reina, cada una mirando hacia afuera.
