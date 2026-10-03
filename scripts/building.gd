@@ -1,7 +1,7 @@
 class_name Building
 extends Node2D
 
-## Edificio: ocupa 3 hexágonos y habilita 3 slots de abejas-torre.
+## Edificio: ocupa 4 hexágonos y habilita 3 slots de abejas-torre.
 ## Mientras se construye (build_rounds > 0) ocupa sus celdas pero no se puede
 ## atacar. Al terminarse (o al instante si build_rounds == 0) suma slots y pasa
 ## a dar su recompensa cada oleada. Al romperse resta los slots.
@@ -15,9 +15,9 @@ extends Node2D
 
 # Referencia a la grilla dueña (para avisarle cuando se rompe).
 var grid: HexGrid
-# La celda "ancla" del edificio (la primera de las 3).
+# La celda "ancla" del edificio (la primera de las 4).
 var cell: Vector2i
-# Las 3 celdas que ocupa.
+# Las 4 celdas que ocupa.
 var cells: Array[Vector2i] = []
 # Tamaño de hexágono; lo asigna la grilla al construir.
 var hex_size: float = 32.0
