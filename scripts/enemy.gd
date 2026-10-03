@@ -12,6 +12,9 @@ extends Node2D
 ## Material que suelta al ser destruida.
 @export var material_reward: int = 5
 
+## Se emite al morir (para que el spawner cuente las bajas de la oleada).
+signal died
+
 ## A quién persigue (siempre la reina).
 var target: Queen
 ## Referencia a la grilla para detectar estructuras en el camino.
@@ -71,6 +74,7 @@ func die(reward: bool = false) -> void:
 	if dead:
 		return
 	dead = true
+	died.emit()
 	if reward:
 		Game.gain(material_reward)
 	queue_free()

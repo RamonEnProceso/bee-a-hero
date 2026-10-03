@@ -12,20 +12,20 @@ enum BuildType { WALL, TOWER }
 const BUILD_DEFS := {
 	BuildType.WALL: {
 		"name": "Pared",
-		"cost": 10,
+		"cost": 5,
 		"shape": "hex",
 		"color": Color(0.55, 0.35, 0.15),
 	},
 	BuildType.TOWER: {
 		"name": "Torre",
-		"cost": 30,
+		"cost": 40,
 		"shape": "tri",
 		"color": Color(0.9, 0.55, 0.1),
 	},
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
-## 130 alcanza para 3 torres (90) + 4 paredes (40).
+## 130 = colchón inicial: alcanza para 3 torres (120) + 2 paredes (10).
 var materials: int = 130
 
 

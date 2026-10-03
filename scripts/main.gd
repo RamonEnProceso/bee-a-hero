@@ -8,6 +8,7 @@ extends Node2D
 @onready var build_menu: BuildMenu = $UILayer/BuildMenu
 @onready var material_label: Label = $UILayer/MaterialLabel
 @onready var game_over_label: Label = $UILayer/GameOverLabel
+@onready var wave_label: Label = $UILayer/WaveLabel
 
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
@@ -26,6 +27,7 @@ func _ready() -> void:
 	spawner.queen = queen
 
 	queen.died.connect(_on_queen_died)
+	spawner.wave_started.connect(_on_wave_started)
 	Game.materials_changed.connect(_on_materials_changed)
 
 	_on_materials_changed(Game.materials)
@@ -103,6 +105,10 @@ func _try_build(type: int, cell: Vector2i) -> void:
 func _on_materials_changed(_value: int) -> void:
 	material_label.text = "Miel: %d" % Game.materials
 	build_menu.queue_redraw()  # actualiza qué tarjetas se ven asequibles
+
+
+func _on_wave_started(wave: int) -> void:
+	wave_label.text = "Oleada %d" % wave
 
 
 func _on_queen_died() -> void:
