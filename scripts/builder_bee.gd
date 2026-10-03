@@ -44,6 +44,8 @@ func _ready() -> void:
 	# La cámara es hija nuestra: se mueve con la abeja automáticamente.
 	$Camera2D.make_current()
 	add_to_group("player")
+	# Siempre por encima de todo (abejas suicidas, enemigos, torres) para no quedar tapada.
+	z_index = 10
 	sprite.scale = Vector2(sprite_scale, sprite_scale)
 	sprite.texture = FLAP_TEXTURES[0]
 
