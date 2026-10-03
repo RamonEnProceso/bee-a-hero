@@ -68,7 +68,7 @@ func _update_drag_preview() -> void:
 	hex_grid.preview_mouse_world = world
 	hex_grid.preview_cell = cell
 	hex_grid.preview_valid = _can_build(dragging_type, cell)
-	hex_grid.preview_texture = Art.wall() if dragging_type == Game.BuildType.WALL else Art.tower()
+	hex_grid.preview_texture = Art.build_icon(dragging_type)
 	hex_grid.queue_redraw()
 
 
@@ -100,11 +100,7 @@ func _try_build(type: int, cell: Vector2i) -> void:
 	if not _can_build(type, cell):
 		return
 	var def: Dictionary = Game.BUILD_DEFS[type]
-	var built: bool = false
-	if type == Game.BuildType.WALL:
-		built = hex_grid.build_wall(cell) != null
-	elif type == Game.BuildType.TOWER:
-		built = hex_grid.build_tower(cell) != null
+	var built: bool = hex_grid.build(type, cell) != null
 	if built:
 		Game.spend(def["cost"])
 

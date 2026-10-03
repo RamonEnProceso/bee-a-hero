@@ -63,7 +63,7 @@ func _shoot(target: Enemy) -> void:
 
 
 ## Recibe daño de los enemigos que la atacan.
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, _attacker: Enemy = null) -> void:
 	health = maxi(0, health - amount)
 	if health <= 0:
 		die()

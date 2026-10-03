@@ -22,6 +22,7 @@ var _t: float = 0.0  # para el bobbing
 
 func _ready() -> void:
 	sprite.texture = Art.pickup()
+	add_to_group("pickups")
 	_bee = get_tree().get_first_node_in_group("player")
 
 

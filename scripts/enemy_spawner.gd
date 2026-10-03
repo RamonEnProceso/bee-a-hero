@@ -1,10 +1,24 @@
 class_name EnemySpawner
 extends Node2D
 
-## Genera oleadas de avispas: cada oleada trae más enemigos y hay una pausa entre oleadas.
+## Genera oleadas de enemigos variados: cada oleada agrega tipos nuevos.
+## La receta de cada oleada arma una lista de escenas que se sueltan de a uno.
 
-## Escena del enemigo a instanciar.
+## Escena de la avispa normal.
 @export var enemy_scene: PackedScene
+## Avispa más grande (desde la oleada 2, resistente al empuje).
+@export var big_wasp_scene: PackedScene
+## Pájaro que picotea torres (desde la oleada 3).
+@export var bird_scene: PackedScene
+## Avispón que rompe paredes (desde la oleada 4).
+@export var hornet_scene: PackedScene
+## Insecticida en área, no atacable (oleadas pares desde la 4).
+@export var smoke_scene: PackedScene
+## Pata de gato que roba torres descubiertas (desde la oleada 5).
+@export var cat_scene: PackedScene
+## Pata de oso que roba miel (desde la oleada 6).
+@export var bear_scene: PackedScene
+
 ## Enemigos de la primera oleada.
 @export var base_enemies: int = 5
 ## Cuántos enemigos se suman en cada oleada nueva.
@@ -29,6 +43,8 @@ var wave: int = 0
 var _to_spawn: int = 0
 # Enemigos de esta oleada que siguen vivos.
 var _alive: int = 0
+# Cola de escenas de la oleada (ya mezclada).
+var _queue: Array[PackedScene] = []
 # Temporizadores internos.
 var _spawn_timer: float = 0.0
 var _wait_timer: float = 0.0
@@ -61,30 +77,72 @@ func _process(delta: float) -> void:
 
 func _start_next_wave() -> void:
 	wave += 1
-	_to_spawn = base_enemies + (wave - 1) * enemies_per_wave
+	_queue = _wave_recipe(wave)
+	_to_spawn = _queue.size()
 	_alive = 0
 	wave_started.emit(wave)
 
 
-## Crea una avispa en un hexágono del borde y le dice a quién perseguir.
+## Arma la lista de escenas de la oleada `w` (mezclada) según qué tipos ya aparecieron.
+func _wave_recipe(w: int) -> Array[PackedScene]:
+	var list: Array[PackedScene] = []
+	# Siempre hay avispas normales de base.
+	var normals: int = base_enemies + (w - 1) * enemies_per_wave
+	for i in normals:
+		list.append(enemy_scene)
+	# Avispas grandes desde la oleada 2.
+	if w >= 2 and big_wasp_scene != null:
+		list.append(big_wasp_scene)
+	# Pájaro desde la oleada 3.
+	if w >= 3 and bird_scene != null:
+		list.append(bird_scene)
+	# Avispón (rompe paredes) desde la oleada 4.
+	if w >= 4 and hornet_scene != null:
+		list.append(hornet_scene)
+		# El insecticida acompaña a las oleadas pares (humo, no atacable).
+		if w % 2 == 0 and smoke_scene != null:
+			list.append(smoke_scene)
+	# Pata de gato desde la oleada 5.
+	if w >= 5 and cat_scene != null:
+		list.append(cat_scene)
+	# Pata de oso desde la oleada 6.
+	if w >= 6 and bear_scene != null:
+		list.append(bear_scene)
+	list.shuffle()
+	return list
+
+
+## Suelta el próximo enemigo de la cola en un hexágono del borde.
 func _spawn_one() -> void:
+	if _queue.is_empty():
+		return
 	var ring: Array[Vector2i] = hex_grid.get_ring_cells()
 	if ring.is_empty():
 		return
 	var cell: Vector2i = ring[randi() % ring.size()]
 
-	var enemy: Enemy = enemy_scene.instantiate()
-	enemy.target = queen
-	enemy.hex_grid = hex_grid
-	enemy.global_position = hex_grid.world_position_of(cell.x, cell.y)
-	enemy.died.connect(_on_enemy_died)
-	add_child(enemy)
+	var scene: PackedScene = _queue.pop_back()
+	var node: Node2D = scene.instantiate()
+
+	# Los enemigos persiguen a la reina y se cuentan como bajas de la oleada.
+	if node is Enemy:
+		var enemy: Enemy = node
+		enemy.target = queen
+		enemy.hex_grid = hex_grid
+		enemy.died.connect(_on_enemy_died)
+		_alive += 1
+	# El humo se esparce desde una celda del borde y NO se cuenta como enemigo.
+	elif node is Smoke:
+		node.grid = hex_grid
+		node.origin_cell = cell
+
+	node.global_position = hex_grid.world_position_of(cell.x, cell.y)
+	add_child(node)
 
 	_to_spawn -= 1
-	_alive += 1
 
 
-## Cuando muere una avispa de la oleada, contamos la baja.
+## Cuando muere un enemigo de la oleada, contamos la baja.
 func _on_enemy_died() -> void:
 	_alive -= 1
 	if _to_spawn <= 0 and _alive <= 0:

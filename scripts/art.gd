@@ -2,7 +2,7 @@ class_name Art
 extends RefCounted
 
 ## Genera texturas placeholder para las entidades (sprites editables luego).
-## Todas se cachean para generarse UNA sola vez. `preload()` las crea todas al inicio
+## Todas se cachean para generarse UNA sola vez. `preload_all()` las crea todas al inicio
 ## para evitar cortes de FPS en medio del juego.
 ## Para poner arte real: reemplazar estos generadores o asignar un PNG al Sprite2D.
 
@@ -15,10 +15,29 @@ static func preload_all() -> void:
 	bee()
 	suicide_bee()
 	enemy()
+	bird()
+	cat_paw()
+	bear_paw()
 	tower()
 	wall()
+	reinforced_wall()
+	spiky_wall()
 	projectile()
 	pickup()
+
+
+## Textura para la tarjeta del menú de un tipo construible.
+static func build_icon(type: int) -> Texture2D:
+	match type:
+		Game.BuildType.WALL:
+			return wall()
+		Game.BuildType.TOWER:
+			return tower()
+		Game.BuildType.REINFORCED:
+			return reinforced_wall()
+		Game.BuildType.SPIKY:
+			return spiky_wall()
+	return wall()
 
 
 static func queen() -> Texture2D:
@@ -62,6 +81,30 @@ static func enemy() -> Texture2D:
 	return _cache["enemy"]
 
 
+## Pájaro: triángulo celeste pequeño (entra, picotea torres y se va).
+static func bird() -> Texture2D:
+	if not _cache.has("bird"):
+		var pts := PackedVector2Array([
+			Vector2(22, 12), Vector2(4, 4), Vector2(4, 20),
+		])
+		_cache["bird"] = _polygon(pts, Color(0.55, 0.7, 0.95), 24)
+	return _cache["bird"]
+
+
+## Pata de gato: círculo claro (se lleva torres descubiertas).
+static func cat_paw() -> Texture2D:
+	if not _cache.has("cat_paw"):
+		_cache["cat_paw"] = _circle(11, Color(0.78, 0.58, 0.48), 32)
+	return _cache["cat_paw"]
+
+
+## Pata de oso: círculo marrón grande (rompe paredes y roba miel).
+static func bear_paw() -> Texture2D:
+	if not _cache.has("bear_paw"):
+		_cache["bear_paw"] = _circle(15, Color(0.45, 0.3, 0.2), 40)
+	return _cache["bear_paw"]
+
+
 static func tower() -> Texture2D:
 	if not _cache.has("tower"):
 		var pts := PackedVector2Array([
@@ -71,17 +114,25 @@ static func tower() -> Texture2D:
 	return _cache["tower"]
 
 
-## Hexágono pointy-top que rellena la celda (hex_size=32).
+## Pared normal: hexágono marrón que rellena la celda.
 static func wall() -> Texture2D:
 	if not _cache.has("wall"):
-		var size := 64
-		var pts := PackedVector2Array()
-		var center := Vector2(size / 2.0, size / 2.0)
-		for i in 6:
-			var a: float = deg_to_rad(60.0 * i - 30.0)
-			pts.append(center + Vector2(cos(a), sin(a)) * 30.0)
-		_cache["wall"] = _polygon(pts, Color(0.55, 0.35, 0.15), size)
+		_cache["wall"] = _wall_texture(Color(0.55, 0.35, 0.15))
 	return _cache["wall"]
+
+
+## Pared reforzada: gris acero (más vida, contra avispones).
+static func reinforced_wall() -> Texture2D:
+	if not _cache.has("reinforced_wall"):
+		_cache["reinforced_wall"] = _wall_texture(Color(0.42, 0.44, 0.52))
+	return _cache["reinforced_wall"]
+
+
+## Pared de púas: rojiza (devuelve daño al que la golpea).
+static func spiky_wall() -> Texture2D:
+	if not _cache.has("spiky_wall"):
+		_cache["spiky_wall"] = _wall_texture(Color(0.6, 0.26, 0.32))
+	return _cache["spiky_wall"]
 
 
 # --- Generadores internos (no cachean; los públicos sí) ---
@@ -105,6 +156,17 @@ static func _polygon(points: PackedVector2Array, color: Color, size: int) -> Ima
 			if Geometry2D.is_point_in_polygon(Vector2(x + 0.5, y + 0.5), points):
 				img.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(img)
+
+
+## Hexágono pointy-top que rellena la celda (los subtipos de pared usan su color).
+static func _wall_texture(color: Color) -> ImageTexture:
+	var size := 64
+	var pts := PackedVector2Array()
+	var center := Vector2(size / 2.0, size / 2.0)
+	for i in 6:
+		var a: float = deg_to_rad(60.0 * i - 30.0)
+		pts.append(center + Vector2(cos(a), sin(a)) * 30.0)
+	return _polygon(pts, color, size)
 
 
 ## Abeja: círculo amarillo con rayas oscuras (visto desde arriba). `radius` escala el cuerpo.

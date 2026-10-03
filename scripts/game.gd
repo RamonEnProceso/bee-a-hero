@@ -5,23 +5,15 @@ extends Node
 signal materials_changed(value: int)
 
 ## Tipos de estructura que se pueden construir.
-enum BuildType { WALL, TOWER }
+enum BuildType { WALL, TOWER, REINFORCED, SPIKY }
 
-## Definiciones de lo construible: nombre, costo y dibujo placeholder.
+## Definiciones de lo construible: nombre y costo.
 ## El orden de las claves es el orden en que aparecen las tarjetas del menú.
 const BUILD_DEFS := {
-	BuildType.WALL: {
-		"name": "Pared",
-		"cost": 5,
-		"shape": "hex",
-		"color": Color(0.55, 0.35, 0.15),
-	},
-	BuildType.TOWER: {
-		"name": "Torre",
-		"cost": 40,
-		"shape": "tri",
-		"color": Color(0.9, 0.55, 0.1),
-	},
+	BuildType.WALL: { "name": "Pared", "cost": 5 },
+	BuildType.TOWER: { "name": "Torre", "cost": 40 },
+	BuildType.REINFORCED: { "name": "Pared reforzada", "cost": 15 },
+	BuildType.SPIKY: { "name": "Pared de púas", "cost": 10 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).

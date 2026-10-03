@@ -41,15 +41,15 @@ func _process(delta: float) -> void:
 	rotation = dir.angle()
 
 	if target != null:
-		# Homing: al alcanzar el objetivo, le hace daño.
+		# Homing: al alcanzar el objetivo, le hace daño y lo empuja.
 		if global_position.distance_to(target.global_position) <= hit_radius:
-			target.take_damage(damage)
+			target.take_damage(damage, dir)
 			queue_free()
 	else:
-		# Línea recta: daña al primer enemigo que toque.
+		# Línea recta: daña al primer enemigo que toque y lo empuja.
 		for node in get_tree().get_nodes_in_group("enemies"):
 			var e := node as Enemy
 			if e != null and global_position.distance_to(e.global_position) <= hit_radius + 8.0:
-				e.take_damage(damage)
+				e.take_damage(damage, direction)
 				queue_free()
 				return

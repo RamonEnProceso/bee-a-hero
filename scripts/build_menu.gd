@@ -51,7 +51,7 @@ func _draw() -> void:
 		draw_rect(r, Color(1.0, 0.85, 0.4, 0.5), false, 2.0)
 
 		# Dibujo arriba.
-		var tex: Texture2D = Art.wall() if type == Game.BuildType.WALL else Art.tower()
+		var tex: Texture2D = Art.build_icon(type)
 		var icon_size := 56.0
 		var icon_rect := Rect2(r.position + Vector2((r.size.x - icon_size) / 2.0, 10.0), Vector2(icon_size, icon_size))
 		draw_texture_rect(tex, icon_rect, false, Color(1, 1, 1, 1.0 if afford else 0.4))

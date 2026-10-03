@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/Pickup.tscn" id="2_pickup"]
+
+[node name="BigWasp" type="Node2D"]
+script = ExtResource("1_enemy")
+pickup_scene = ExtResource("2_pickup")
+max_health = 6
+material_reward = 8
+knockback_resistance = 0.85
+body_scale = 1.6
+
+[node name="Sprite2D" type="Sprite2D" parent="."]

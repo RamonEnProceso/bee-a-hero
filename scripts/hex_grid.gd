@@ -14,6 +14,10 @@ extends Node2D
 @export var wall_scene: PackedScene
 ## Escena de la torre (el aguijón) que se construye.
 @export var tower_scene: PackedScene
+## Escena de la pared reforzada (más vida, contra avispones).
+@export var reinforced_wall_scene: PackedScene
+## Escena de la pared de púas (devuelve daño al que la golpea).
+@export var spiky_wall_scene: PackedScene
 
 # Celda sobre la que está el mouse en este instante.
 var hovered: Vector2i = Vector2i.ZERO
@@ -103,6 +107,14 @@ func get_ring_cells(radius: int = -1) -> Array[Vector2i]:
 	return cells
 
 
+## Las 6 celdas vecinas de `cell` (direcciones axiales).
+func get_neighbors(cell: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for d in [Vector2i(1, 0), Vector2i(1, -1), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(-1, 1), Vector2i(0, 1)]:
+		out.append(cell + d)
+	return out
+
+
 ## Radio "cúbico" de una celda: max(|q|, |r|, |q+r|).
 func cube_radius(q: int, r: int) -> int:
 	return maxi(absi(q), maxi(absi(r), absi(q + r)))
@@ -152,14 +164,43 @@ func structure_at(cell: Vector2i):
 	return null
 
 
-## Construye una pared en `cell`. Devuelve null si la celda no es válida.
+## Construye la estructura del `type` pedido en `cell`. Devuelve el nodo o null.
+func build(type: int, cell: Vector2i) -> Node2D:
+	match type:
+		Game.BuildType.WALL:
+			return build_wall(cell)
+		Game.BuildType.TOWER:
+			return build_tower(cell)
+		Game.BuildType.REINFORCED:
+			return build_reinforced_wall(cell)
+		Game.BuildType.SPIKY:
+			return build_spiky_wall(cell)
+	return null
+
+
+## Construye una pared normal en `cell`. Devuelve null si la celda no es válida.
 func build_wall(cell: Vector2i) -> Wall:
-	if wall_scene == null:
+	return _build_wall_with(wall_scene, cell)
+
+
+## Construye una pared reforzada (más vida) en `cell`.
+func build_reinforced_wall(cell: Vector2i) -> Wall:
+	return _build_wall_with(reinforced_wall_scene, cell)
+
+
+## Construye una pared de púas (devuelve daño) en `cell`.
+func build_spiky_wall(cell: Vector2i) -> Wall:
+	return _build_wall_with(spiky_wall_scene, cell)
+
+
+## Pared genérica: instancia la escena, la anota en `walls` y la coloca en su celda.
+func _build_wall_with(scene: PackedScene, cell: Vector2i) -> Wall:
+	if scene == null:
 		return null
 	if not can_place(cell):
 		return null
 
-	var wall: Wall = wall_scene.instantiate()
+	var wall: Wall = scene.instantiate()
 	wall.grid = self
 	wall.cell = cell
 	wall.hex_size = hex_size

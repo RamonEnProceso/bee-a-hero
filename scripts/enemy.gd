@@ -1,18 +1,29 @@
 class_name Enemy
 extends Node2D
 
-## La avispa enemiga: va en línea recta hacia la reina, atacando estructuras en el camino.
-## Nunca ataca a la abeja protagonista (es invulnerable).
+## Base de los enemigos: van en línea recta hacia la reina, atacando estructuras
+## en el camino. Los subtipos (avispa grande, avispón, pájaro, gato, oso) heredan
+## y cambian textura, vida, velocidad y comportamiento.
 
 @export var max_health: int = 3
 @export var speed: float = 60.0
+## Daño que le hace a la reina al llegar.
 @export var damage: int = 1
+## Daño que le hace a las estructuras (paredes/torres) por golpe.
 @export var structure_damage: int = 1
 @export var attack_interval: float = 0.6
-## Material que suelta al ser destruida.
+## Material que suelta al ser destruido.
 @export var material_reward: int = 5
 ## Escena de la gota de miel que suelta al morir (la abeja la recolecta).
 @export var pickup_scene: PackedScene
+## Empuje que recibe por cada proyectil que le pega (px de velocidad).
+@export var knockback_force: float = 24.0
+## Qué tan resistente es al empuje: 0 = empuje normal, 1 = no retrocede.
+@export var knockback_resistance: float = 0.0
+## Cuán rápido se frena el empuje (px/s²).
+@export var knockback_decay: float = 160.0
+## Escala del sprite (los jefes son más grandes).
+@export var body_scale: float = 1.0
 
 ## Se emite al morir (para que el spawner cuente las bajas de la oleada).
 signal died
@@ -26,13 +37,21 @@ var dead: bool = false
 var health: int
 # Cooldown entre golpes a una estructura.
 var attack_cooldown: float = 0.0
+# Velocidad extra que empuja al enemigo al recibir daño.
+var _knockback: Vector2 = Vector2.ZERO
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemies")
-	sprite.texture = Art.enemy()
+	sprite.texture = _texture()
+	sprite.scale = Vector2(body_scale, body_scale)
+
+
+## Textura de este enemigo (cada subtipo devuelve la suya).
+func _texture() -> Texture2D:
+	return Art.enemy()
 
 
 func _process(delta: float) -> void:
@@ -40,6 +59,7 @@ func _process(delta: float) -> void:
 		return
 
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
+	_apply_knockback(delta)
 
 	# Dirección en línea recta hacia la reina.
 	var dir: Vector2 = (target.global_position - global_position).normalized()
@@ -54,7 +74,7 @@ func _process(delta: float) -> void:
 		if structure != null:
 			rotation = dir.angle()
 			if attack_cooldown <= 0.0:
-				structure.take_damage(structure_damage)
+				structure.take_damage(structure_damage, self)
 				attack_cooldown = attack_interval
 			return
 
@@ -67,9 +87,20 @@ func _process(delta: float) -> void:
 		_hit_queen()
 
 
-## Recibe daño de los proyectiles.
-func take_damage(amount: int) -> void:
+## Aplica el empuje de los proyectiles (y lo va frenando).
+func _apply_knockback(delta: float) -> void:
+	if _knockback.length_squared() < 0.01:
+		_knockback = Vector2.ZERO
+		return
+	global_position += _knockback * delta
+	_knockback = _knockback.move_toward(Vector2.ZERO, knockback_decay * delta)
+
+
+## Recibe daño de los proyectiles. `hit_dir` empuja al enemigo en esa dirección.
+func take_damage(amount: int, hit_dir: Vector2 = Vector2.ZERO) -> void:
 	health = maxi(0, health - amount)
+	if hit_dir != Vector2.ZERO:
+		_knockback = hit_dir * knockback_force * (1.0 - knockback_resistance)
 	if health <= 0:
 		die(true)
 
@@ -83,6 +114,11 @@ func die(reward: bool = false) -> void:
 	if reward:
 		_drop_pickup()
 	queue_free()
+
+
+## El enemigo se retira del escenario sin soltar material (pájaro/gato/oso).
+func leave() -> void:
+	die(false)
 
 
 ## Suelta una gota de miel que la abeja protagonista recolecta al acercarse.
