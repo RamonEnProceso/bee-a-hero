@@ -18,7 +18,7 @@ extends Node2D
 @export var reinforced_wall_scene: PackedScene
 ## Escena de la pared trampa (pinchos: desaparecen al tocar y dañan).
 @export var trap_wall_scene: PackedScene
-## Escena de la torre doble (dispara a dos enemigos).
+## Escena de la torre doble (recarga a la mitad de tiempo).
 @export var double_tower_scene: PackedScene
 ## Escena del cañón (ocupa 2x2 hexágonos, tiros potentes).
 @export var big_tower_scene: PackedScene
@@ -273,7 +273,7 @@ func build_tower(cell: Vector2i) -> Tower:
 	return tower
 
 
-## Construye una torre doble (dispara a dos enemigos) en `cell`.
+## Construye una torre doble (recarga a la mitad de tiempo) en `cell`.
 func build_double_tower(cell: Vector2i) -> Tower:
 	if double_tower_scene == null:
 		return null

@@ -75,7 +75,7 @@ func _shoot(target: Enemy) -> void:
 
 
 ## Crea el proyectil que viaja hacia `target`. Las subclases lo sobrescriben
-## (la torre doble dispara dos, el cañón un tiro grande).
+## (la torre doble recarga más rápido, el cañón un tiro grande).
 func _spawn_projectile(target: Enemy) -> void:
 	var p: Projectile = projectile_scene.instantiate()
 	p.target = target

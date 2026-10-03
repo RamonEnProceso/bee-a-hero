@@ -81,7 +81,7 @@ func _start_next_wave() -> void:
 	_to_spawn = _queue.size()
 	_alive = 0
 	wave_started.emit(wave)
-	# Desde la oleada 2, un círculo de enemigos se cierra desde todos los lados.
+	# Desde la oleada 2 hay cerco (media ronda hasta la 4, círculo completo desde la 5).
 	if wave >= 2:
 		_spawn_encirclement(wave)
 
@@ -149,8 +149,8 @@ func _spawn_at(scene: PackedScene, cell: Vector2i) -> void:
 	add_child(node)
 
 
-## Círculo de enemigos que se cierra hacia el centro desde todos los lados.
-## Repartidos parejo por el anillo, todos caminan hacia la reina a la vez.
+## Cerco de enemigos que se cierra hacia el centro. Hasta la oleada 4 es media
+## ronda (semicírculo); desde la 5 el círculo es completo, desde todos los lados.
 func _spawn_encirclement(w: int) -> void:
 	if enemy_scene == null:
 		return
@@ -158,6 +158,12 @@ func _spawn_encirclement(w: int) -> void:
 	if ring.is_empty():
 		return
 	var count: int = mini(6 + w, ring.size())
+	# Antes de la oleada 5 el cerco es media ronda (semicírculo); recién en la 5
+	# se cierra el círculo completo. Los enemigos entran parejos por un solo lado.
+	var span: int = ring.size()
+	if w < 5:
+		span = ring.size() / 2
+		count = maxi(1, count / 2)
 	# Ordenamos el anillo por ángulo para que queden parejos alrededor del centro.
 	var center: Vector2 = hex_grid.world_position_of(0, 0)
 	ring.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
@@ -165,7 +171,7 @@ func _spawn_encirclement(w: int) -> void:
 		var pb: Vector2 = hex_grid.world_position_of(b.x, b.y) - center
 		return pa.angle() < pb.angle())
 	for i in count:
-		var idx: int = int(round(float(i) * float(ring.size()) / float(count))) % ring.size()
+		var idx: int = int(round(float(i) * float(span) / float(count))) % span
 		_spawn_at(enemy_scene, ring[idx])
 
 
