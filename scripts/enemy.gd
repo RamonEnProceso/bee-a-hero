@@ -11,6 +11,8 @@ extends Node2D
 @export var attack_interval: float = 0.6
 ## Material que suelta al ser destruida.
 @export var material_reward: int = 5
+## Escena de la gota de miel que suelta al morir (la abeja la recolecta).
+@export var pickup_scene: PackedScene
 
 ## Se emite al morir (para que el spawner cuente las bajas de la oleada).
 signal died
@@ -76,8 +78,18 @@ func die(reward: bool = false) -> void:
 	dead = true
 	died.emit()
 	if reward:
-		Game.gain(material_reward)
+		_drop_pickup()
 	queue_free()
+
+
+## Suelta una gota de miel que la abeja protagonista recolecta al acercarse.
+func _drop_pickup() -> void:
+	if pickup_scene == null:
+		return
+	var p: Pickup = pickup_scene.instantiate()
+	p.value = material_reward
+	get_parent().add_child(p)
+	p.global_position = global_position
 
 
 func _hit_queen() -> void:

@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/Pickup.tscn" id="2_pickup"]
 
 [node name="Enemy" type="Node2D"]
 script = ExtResource("1_enemy")
+pickup_scene = ExtResource("2_pickup")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

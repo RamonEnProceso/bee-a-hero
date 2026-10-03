@@ -34,13 +34,15 @@ var preview_valid: bool = false
 
 func _ready() -> void:
 	# La grilla queda en el origen (0,0); la cámara que sigue a la abeja muestra la vista.
-	pass
+	queue_redraw()
 
 
 func _process(_delta: float) -> void:
-	# Convertimos la posición global del mouse a coordenadas locales y buscamos la celda.
-	hovered = pixel_to_hex(to_local(get_global_mouse_position()))
-	queue_redraw()
+	# Solo redibujamos cuando el mouse cambia de celda (menos carga que redibujar cada frame).
+	var cell: Vector2i = pixel_to_hex(to_local(get_global_mouse_position()))
+	if cell != hovered:
+		hovered = cell
+		queue_redraw()
 
 
 # ---------------------------------------------------------------------------

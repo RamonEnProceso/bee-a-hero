@@ -18,6 +18,7 @@ var fire_cooldown: float = 0.0
 func _ready() -> void:
 	# La cámara es hija nuestra: se mueve con la abeja automáticamente.
 	$Camera2D.make_current()
+	add_to_group("player")
 	sprite.texture = Art.bee()
 
 

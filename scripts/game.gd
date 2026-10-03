@@ -41,3 +41,8 @@ func spend(cost: int) -> void:
 func gain(amount: int) -> void:
 	materials += amount
 	materials_changed.emit(materials)
+
+
+func _ready() -> void:
+	# Precargamos todas las texturas para evitar cortes de FPS al jugar.
+	Art.preload_all()
