@@ -12,6 +12,9 @@ extends Node2D
 @export var slots_granted: int = 3
 ## Rondas que tarda en construirse (0 = se construye al instante).
 @export var build_rounds: int = 0
+## Segundos que tarda en construirse (0 = se usa build_rounds). Permite una obra
+## corta por tiempo en vez de por rondas (el edificio base la usa).
+@export var build_time: float = 0.0
 
 # Referencia a la grilla dueña (para avisarle cuando se rompe).
 var grid: HexGrid
@@ -27,6 +30,8 @@ var health: int
 var built: bool = true
 # Rondas que faltan para terminar la construcción.
 var _construction_left: int = 0
+# Segundos que faltan para terminar la construcción por tiempo.
+var _build_time_left: float = 0.0
 var _hit_tween: Tween
 # Nodos de la vista de obra (indicador, conos y mazo): se crean solo si el edificio
 # tarda rondas en construirse y se liberan al terminarse.
@@ -61,12 +66,21 @@ func _ready() -> void:
 	add_to_group("buildings")
 	Fx.squash(sprite)
 	_construction_left = build_rounds
-	if build_rounds <= 0:
+	_build_time_left = build_time
+	if build_rounds <= 0 and build_time <= 0.0:
 		_finish_construction()
 	else:
 		built = false
 		sprite.modulate = Color(0.5, 0.5, 0.5, 1.0)
 		_spawn_construction_visuals()
+
+
+## Cuenta atrás de la construcción por tiempo (la de rondas avanza en on_wave_cleared).
+func _process(delta: float) -> void:
+	if not built and build_time > 0.0:
+		_build_time_left -= delta
+		if _build_time_left <= 0.0:
+			_finish_construction()
 
 
 ## Marca el edificio como terminado: suma slots y recupera su color.
@@ -84,9 +98,11 @@ func _finish_construction() -> void:
 ## Hook al final de cada oleada: si está en obra, avanza; si ya está listo, da su recompensa.
 func on_wave_cleared() -> void:
 	if not built:
-		_construction_left -= 1
-		if _construction_left <= 0:
-			_finish_construction()
+		# Solo la obra por rondas avanza acá; la obra por tiempo la termina _process.
+		if build_rounds > 0:
+			_construction_left -= 1
+			if _construction_left <= 0:
+				_finish_construction()
 		return
 	_reward()
 

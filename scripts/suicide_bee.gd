@@ -12,7 +12,7 @@ extends Node2D
 @export var trigger_radius: float = 34.0
 
 ## Escala del sprite (los PNG vienen a 512px, hay que achicarlos).
-@export var sprite_scale: float = 0.14
+@export var sprite_scale: float = 0.112
 ## Segundos por frame del aleteo (más chico = alas más rápidas).
 @export var flap_interval: float = 0.1
 ## Amplitud del vaivén vertical (px). Más corta que la reina (4.0).
