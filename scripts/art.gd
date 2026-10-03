@@ -15,7 +15,9 @@ static func preload_all() -> void:
 	bee()
 	suicide_bee()
 	enemy()
-	bird()
+	spiral_wasp()
+	shooter_wasp()
+	enemy_projectile()
 	cat_paw()
 	bear_paw()
 	tower()
@@ -87,12 +89,31 @@ static func enemy() -> Texture2D:
 	return _cache["enemy"]
 
 
-## Pájaro de perfil: torso + cabeza + pico + cola. Vuela y se va (no ataca).
-## Ocupa ~128 px ≈ 2 hexágonos de largo.
-static func bird() -> Texture2D:
-	if not _cache.has("bird"):
-		_cache["bird"] = _bird_texture()
-	return _cache["bird"]
+## Avispa torbellino: igual a la avispa común pero color turquesa (gira en espiral).
+static func spiral_wasp() -> Texture2D:
+	if not _cache.has("spiral_wasp"):
+		var pts := PackedVector2Array([
+			Vector2(30, 16), Vector2(4, 4), Vector2(4, 28),
+		])
+		_cache["spiral_wasp"] = _polygon(pts, Color(0.15, 0.7, 0.65), 32)
+	return _cache["spiral_wasp"]
+
+
+## Avispa tiradora: aguijón más fino y color violeta (dispara aguijones a la reina).
+static func shooter_wasp() -> Texture2D:
+	if not _cache.has("shooter_wasp"):
+		var pts := PackedVector2Array([
+			Vector2(30, 16), Vector2(2, 9), Vector2(2, 23),
+		])
+		_cache["shooter_wasp"] = _polygon(pts, Color(0.75, 0.3, 0.85), 32)
+	return _cache["shooter_wasp"]
+
+
+## Aguijón que dispara la avispa tiradora (pequeño, color naranja).
+static func enemy_projectile() -> Texture2D:
+	if not _cache.has("enemy_projectile"):
+		_cache["enemy_projectile"] = _circle(3, Color(1.0, 0.45, 0.1), 16)
+	return _cache["enemy_projectile"]
 
 
 ## Pata de gato: círculo claro (se lleva torres descubiertas).
@@ -249,45 +270,4 @@ static func _bee_texture(size: int, radius: float) -> ImageTexture:
 				var dx := p.x - c.x
 				if absf(dx) < stripe_half or absf(dx - stripe_gap) < stripe_half or absf(dx + stripe_gap) < stripe_half:
 					img.set_pixel(x, y, Color(0.25, 0.18, 0.05))
-	return ImageTexture.create_from_image(img)
-
-
-## Pájaro de perfil apuntando hacia +X: torso (cuerpo) + cabeza + pico + ojo + cola.
-## El sprite rota para mirar hacia donde vuela, como el resto.
-static func _bird_texture() -> ImageTexture:
-	var size := 128
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
-
-	var body_color := Color(0.50, 0.66, 0.90)
-	var head_color := Color(0.64, 0.78, 0.98)
-	var beak_color := Color(0.95, 0.62, 0.15)
-	var eye_color := Color(0.1, 0.1, 0.15)
-
-	var body_c := Vector2(40, 64)
-	var head_c := Vector2(78, 58)
-	# Pico: triángulo que sobresale hacia +X; cola: triángulo que apunta hacia -X.
-	var beak := PackedVector2Array([Vector2(126, 60), Vector2(88, 48), Vector2(88, 72)])
-	var tail := PackedVector2Array([Vector2(2, 64), Vector2(30, 48), Vector2(30, 80)])
-
-	for y in size:
-		for x in size:
-			var p := Vector2(x + 0.5, y + 0.5)
-			# Torso: elipse horizontal detrás de la cabeza.
-			var d := p - body_c
-			if (d.x * d.x) / (36.0 * 36.0) + (d.y * d.y) / (28.0 * 28.0) <= 1.0:
-				img.set_pixel(x, y, body_color)
-			# Cola (triángulo que sobresale por atrás).
-			if Geometry2D.is_point_in_polygon(p, tail):
-				img.set_pixel(x, y, body_color)
-			# Cabeza (círculo, por delante).
-			if p.distance_to(head_c) <= 22.0:
-				img.set_pixel(x, y, head_color)
-			# Pico.
-			if Geometry2D.is_point_in_polygon(p, beak):
-				img.set_pixel(x, y, beak_color)
-			# Ojo.
-			if p.distance_to(Vector2(88, 50)) <= 6.0:
-				img.set_pixel(x, y, eye_color)
-
 	return ImageTexture.create_from_image(img)

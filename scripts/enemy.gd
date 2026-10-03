@@ -2,8 +2,8 @@ class_name Enemy
 extends Node2D
 
 ## Base de los enemigos: van en línea recta hacia la reina, atacando estructuras
-## en el camino. Los subtipos (avispa grande, avispón, pájaro, gato, oso) heredan
-## y cambian textura, vida, velocidad y comportamiento.
+## en el camino. Los subtipos (avispa grande, avispón, torbellino, tiradora, gato,
+## oso) heredan y cambian textura, vida, velocidad y comportamiento.
 
 @export var max_health: int = 3
 @export var speed: float = 100.0
@@ -142,7 +142,7 @@ func _spawn_explosion() -> void:
 	e.scale = Vector2(body_scale, body_scale)
 
 
-## El enemigo se retira del escenario sin soltar material (pájaro/gato/oso).
+## El enemigo se retira del escenario sin soltar material (gato/oso).
 func leave() -> void:
 	die(false)
 
