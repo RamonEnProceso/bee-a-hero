@@ -11,6 +11,7 @@ extends Node2D
 @onready var wave_label: Label = $UILayer/WaveLabel
 @onready var wave_banner: Label = $UILayer/WaveBanner
 @onready var slots_label: Label = $UILayer/SlotsLabel
+@onready var free_bee_label: Label = $UILayer/FreeBeeLabel
 
 ## Distancia (en anillos hexagonales) a la que la abeja puede construir.
 @export var build_range: int = 2
@@ -21,6 +22,8 @@ extends Node2D
 
 # Tipo de tarjeta que se está arrastrando desde el menú, o -1 si no.
 var dragging_type: int = -1
+# Tween del latido de la etiqueta "Abejas gratis".
+var _free_tween: Tween
 
 
 func _ready() -> void:
@@ -43,6 +46,7 @@ func _ready() -> void:
 
 	_on_materials_changed(Game.materials)
 	_on_slots_changed(Game.slots_used(), Game.slot_capacity)
+	_on_free_towers_changed(Game.free_towers)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -156,9 +160,33 @@ func _on_slots_changed(used: int, capacity: int) -> void:
 	build_menu.queue_redraw()  # actualiza el brillo de las tarjetas
 
 
-## Actualiza el menú cuando cambian las torres gratis (la tarjeta Torre se ve "GRATIS").
-func _on_free_towers_changed(_count: int) -> void:
+## Actualiza la etiqueta "Abejas gratis" y el menú. Con abejas gratis la
+## etiqueta late en dorado para que sea imposible no verla.
+func _on_free_towers_changed(count: int) -> void:
+	free_bee_label.text = "Abejas gratis: %d" % count
+	if count > 0:
+		free_bee_label.modulate = Color.WHITE
+		_start_free_pulse()
+	else:
+		_stop_free_pulse()
+		free_bee_label.modulate = Color(1, 1, 1, 0.35)
 	build_menu.queue_redraw()
+
+
+## Latido continuo de la etiqueta "Abejas gratis" mientras haya abejas gratis.
+func _start_free_pulse() -> void:
+	if _free_tween != null and _free_tween.is_valid():
+		_free_tween.kill()
+	_free_tween = create_tween().set_loops()
+	_free_tween.tween_property(free_bee_label, "modulate:a", 0.35, 0.6)
+	_free_tween.tween_property(free_bee_label, "modulate:a", 1.0, 0.6)
+
+
+## Detiene el latido y deja la etiqueta a su transparencia normal.
+func _stop_free_pulse() -> void:
+	if _free_tween != null and _free_tween.is_valid():
+		_free_tween.kill()
+	free_bee_label.modulate.a = 1.0
 
 
 func _on_wave_started(wave: int) -> void:

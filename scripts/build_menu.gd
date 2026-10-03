@@ -39,6 +39,9 @@ func _process(_delta: float) -> void:
 	_hovered = t
 	if _base_needs_glow():
 		needs_redraw = true
+	# La tarjeta Torre también late (verde) mientras haya una torre gratis.
+	if Game.has_free_tower():
+		needs_redraw = true
 	if needs_redraw:
 		queue_redraw()
 
@@ -93,9 +96,12 @@ func _draw() -> void:
 		# Fondo de la tarjeta.
 		draw_rect(r, Color(0.16, 0.12, 0.06, 0.92), true)
 
-		# Borde: la Base pulsa (más brillante) cuando el jugador necesita construir.
+		# Borde: la Base pulsa cuando faltan slots; la Torre late en verde si hay una gratis.
 		if type == Game.BuildType.BASE and _base_needs_glow():
 			var glow := Color(1.0, 0.85, 0.4).lerp(Color(1.0, 1.0, 0.95), pulse)
+			draw_rect(r, glow, false, 4.0)
+		elif type == Game.BuildType.TOWER and Game.has_free_tower():
+			var glow := Color(0.35, 0.9, 0.45).lerp(Color(0.8, 1.0, 0.85), pulse)
 			draw_rect(r, glow, false, 4.0)
 		else:
 			draw_rect(r, Color(1.0, 0.85, 0.4, 0.5), false, 2.0)
