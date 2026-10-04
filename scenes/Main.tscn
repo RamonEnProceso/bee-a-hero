@@ -13,9 +13,6 @@
 [ext_resource type="PackedScene" path="res://scenes/SuicideBee.tscn" id="11_sbee"]
 [ext_resource type="PackedScene" path="res://scenes/BigWasp.tscn" id="12_bigwasp"]
 [ext_resource type="PackedScene" uid="uid://qpen5astlda0" path="res://scenes/Hornet.tscn" id="13_hornet"]
-[ext_resource type="PackedScene" path="res://scenes/Cat.tscn" id="15_cat"]
-[ext_resource type="PackedScene" path="res://scenes/Bear.tscn" id="16_bear"]
-[ext_resource type="PackedScene" path="res://scenes/Smoke.tscn" id="17_smoke"]
 [ext_resource type="PackedScene" path="res://scenes/ReinforcedWall.tscn" id="18_rwall"]
 [ext_resource type="PackedScene" path="res://scenes/TrapWall.tscn" id="19_trap"]
 [ext_resource type="PackedScene" path="res://scenes/DoubleTower.tscn" id="20_dtower"]
@@ -26,11 +23,10 @@
 [ext_resource type="PackedScene" path="res://scenes/Cultivadora.tscn" id="26_cultivadora"]
 [ext_resource type="PackedScene" path="res://scenes/Guardia.tscn" id="27_guardia"]
 [ext_resource type="PackedScene" path="res://scenes/LongRange.tscn" id="28_lrange"]
-[ext_resource type="PackedScene" path="res://scenes/BombWasp.tscn" id="30_bomb"]
 [ext_resource type="PackedScene" path="res://scenes/Hormiga.tscn" id="31_hormiga"]
-[ext_resource type="PackedScene" path="res://scenes/Polilla.tscn" id="32_polilla"]
 [ext_resource type="Script" uid="uid://c0gb0cwu7y22y" path="res://scripts/context_menu.gd" id="33_cmenu"]
 [ext_resource type="Texture2D" uid="uid://crxbryfmgcvqv" path="res://textures/Miel_HUD.png" id="40_mielhud"]
+[ext_resource type="Texture2D" uid="uid://b8w1itushvppr" path="res://textures/Background.png" id="41_background"]
 [ext_resource type="PackedScene" path="res://scenes/PauseMenu.tscn" id="50_pause"]
 [ext_resource type="PackedScene" path="res://scenes/GameOverScreen.tscn" id="51_gameover"]
 
@@ -41,10 +37,31 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="Shader" id="Shader_vignette"]
+code = "shader_type canvas_item;\n\nuniform float radius : hint_range(0.0, 1.0) = 0.45;\nuniform float softness : hint_range(0.0, 1.0) = 0.5;\nuniform float intensity : hint_range(0.0, 1.0) = 0.65;\n\nvoid fragment() {\n\tfloat dist = distance(UV, vec2(0.5));\n\tfloat vignette = smoothstep(radius, radius + softness, dist);\n\tCOLOR = vec4(0.0, 0.0, 0.0, vignette * intensity);\n}\n"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
+shader = SubResource("Shader_vignette")
+
 [node name="Main" type="Node2D" unique_id=1867172931]
 script = ExtResource("1_main")
 suicide_bee_scene = ExtResource("11_sbee")
 suicide_bee_ring = 1
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="TextureRect" type="TextureRect" parent="Background"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("41_background")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="HexGrid" type="Node2D" parent="." unique_id=205318142]
 script = ExtResource("2_grid")
@@ -74,12 +91,7 @@ big_wasp_scene = ExtResource("12_bigwasp")
 spiral_wasp_scene = ExtResource("22_swasp")
 shooter_wasp_scene = ExtResource("23_shooter")
 hornet_scene = ExtResource("13_hornet")
-smoke_scene = ExtResource("17_smoke")
-cat_scene = ExtResource("15_cat")
-bear_scene = ExtResource("16_bear")
-bomb_wasp_scene = ExtResource("30_bomb")
 hormiga_scene = ExtResource("31_hormiga")
-polilla_scene = ExtResource("32_polilla")
 time_between_waves = 8.0
 
 [node name="BuilderBee" type="Node2D" parent="." unique_id=874248090]
@@ -91,6 +103,16 @@ projectile_scene = ExtResource("10_proj")
 [node name="Camera2D" type="Camera2D" parent="BuilderBee" unique_id=1308290234]
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=242645184]
+
+[node name="Vignette" type="ColorRect" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1
+anchor_bottom = 1
+grow_horizontal = 4
+grow_vertical = 4
+mouse_filter = 2
+material = SubResource("ShaderMaterial_vignette")
 
 [node name="HoneyCard" type="Panel" parent="UILayer" unique_id=2074627975]
 offset_left = 8.0

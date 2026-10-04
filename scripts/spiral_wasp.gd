@@ -14,9 +14,15 @@ extends Enemy
 var _angle: float = 0.0
 var _radius: float = 0.0
 
+## Los dos frames del aleteo de la mosca/torbellino.
+const MOSCA_TEXTURES := [
+	preload("res://textures/mosca_00.png"),
+	preload("res://textures/mosca_01.png"),
+]
 
-func _texture() -> Texture2D:
-	return Art.spiral_wasp()
+
+func _textures() -> Array:
+	return MOSCA_TEXTURES
 
 
 func _ready() -> void:
@@ -31,12 +37,13 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if dead or target == null:
 		return
+	_animate_flap(delta)
 	# Gira y achica el radio: espiral hacia el centro.
 	_angle += angular_speed * delta
 	_radius = maxf(0.0, _radius - inward_speed * delta)
 	var center: Vector2 = target.global_position
 	global_position = center + Vector2(cos(_angle), sin(_angle)) * _radius
 	# Mira hacia la tangente del giro (la dirección de avance).
-	rotation = _angle + PI / 2.0
+	rotation = _angle + PI / 2.0 + rotation_offset
 	if _radius <= hit_distance:
 		_hit_queen()

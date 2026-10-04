@@ -14,12 +14,7 @@ static func preload_all() -> void:
 	queen()
 	bee()
 	suicide_bee()
-	enemy()
-	spiral_wasp()
-	shooter_wasp()
 	enemy_projectile()
-	cat_paw()
-	bear_paw()
 	tower()
 	wall()
 	reinforced_wall()
@@ -27,10 +22,6 @@ static func preload_all() -> void:
 	double_tower()
 	guardia()
 	long_range()
-	bomb_wasp()
-	hormiga()
-	polilla()
-	egg()
 	building()
 	guarderia()
 	cultivadora()
@@ -116,33 +107,6 @@ static func suicide_bee() -> Texture2D:
 	return _cache["suicide_bee"]
 
 
-static func enemy() -> Texture2D:
-	if not _cache.has("enemy"):
-		var pts := PackedVector2Array([
-			Vector2(30, 16), Vector2(4, 4), Vector2(4, 28),
-		])
-		_cache["enemy"] = _polygon(pts, Color(0.85, 0.15, 0.15), 32)
-	return _cache["enemy"]
-
-
-## Avispa torbellino: igual a la avispa común pero color turquesa (gira en espiral).
-static func spiral_wasp() -> Texture2D:
-	if not _cache.has("spiral_wasp"):
-		var pts := PackedVector2Array([
-			Vector2(30, 16), Vector2(4, 4), Vector2(4, 28),
-		])
-		_cache["spiral_wasp"] = _polygon(pts, Color(0.15, 0.7, 0.65), 32)
-	return _cache["spiral_wasp"]
-
-
-## Avispa tiradora: aguijón más fino y color violeta (dispara aguijones a la reina).
-static func shooter_wasp() -> Texture2D:
-	if not _cache.has("shooter_wasp"):
-		var pts := PackedVector2Array([
-			Vector2(30, 16), Vector2(2, 9), Vector2(2, 23),
-		])
-		_cache["shooter_wasp"] = _polygon(pts, Color(0.75, 0.3, 0.85), 32)
-	return _cache["shooter_wasp"]
 
 
 ## Aguijón que dispara la avispa tiradora (pequeño, color naranja).
@@ -150,71 +114,6 @@ static func enemy_projectile() -> Texture2D:
 	if not _cache.has("enemy_projectile"):
 		_cache["enemy_projectile"] = _circle(3, Color(1.0, 0.45, 0.1), 16)
 	return _cache["enemy_projectile"]
-
-
-## Pata de gato: círculo claro (se lleva torres descubiertas).
-static func cat_paw() -> Texture2D:
-	if not _cache.has("cat_paw"):
-		_cache["cat_paw"] = _circle(11, Color(0.78, 0.58, 0.48), 32)
-	return _cache["cat_paw"]
-
-
-## Pata de oso: círculo marrón grande (rompe paredes y roba miel).
-static func bear_paw() -> Texture2D:
-	if not _cache.has("bear_paw"):
-		_cache["bear_paw"] = _circle(15, Color(0.45, 0.3, 0.2), 40)
-	return _cache["bear_paw"]
-
-
-## Avispa bomba: cuerpo oscuro con chispa naranja (explota al morir).
-static func bomb_wasp() -> Texture2D:
-	if not _cache.has("bomb_wasp"):
-		var size := 40
-		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-		img.fill(Color(0, 0, 0, 0))
-		_paint_dot(img, 20.0, 20.0, 13.0, Color(0.5, 0.08, 0.08))
-		_paint_dot(img, 27.0, 13.0, 4.0, Color(1.0, 0.55, 0.1))
-		_cache["bomb_wasp"] = ImageTexture.create_from_image(img)
-	return _cache["bomb_wasp"]
-
-
-## Hormiga: tres segmentos marrones en fila (roba miel y huye).
-static func hormiga() -> Texture2D:
-	if not _cache.has("hormiga"):
-		var size := 40
-		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-		img.fill(Color(0, 0, 0, 0))
-		var brown := Color(0.35, 0.22, 0.1)
-		_paint_dot(img, 12.0, 20.0, 6.0, brown)
-		_paint_dot(img, 20.0, 20.0, 5.0, brown)
-		_paint_dot(img, 28.0, 20.0, 4.0, brown)
-		_cache["hormiga"] = ImageTexture.create_from_image(img)
-	return _cache["hormiga"]
-
-
-## Polilla: dos alas grises y cuerpo oscuro (pone huevos en la colmena).
-static func polilla() -> Texture2D:
-	if not _cache.has("polilla"):
-		var size := 40
-		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-		img.fill(Color(0, 0, 0, 0))
-		var wing := Color(0.72, 0.68, 0.78)
-		_paint_dot(img, 14.0, 20.0, 10.0, wing)
-		_paint_dot(img, 26.0, 20.0, 10.0, wing)
-		_paint_dot(img, 20.0, 20.0, 4.0, Color(0.4, 0.35, 0.42))
-		_cache["polilla"] = ImageTexture.create_from_image(img)
-	return _cache["polilla"]
-
-
-## Huevo de polilla: óvalo crema que late hasta eclosionar.
-static func egg() -> Texture2D:
-	if not _cache.has("egg"):
-		var size := 32
-		var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-		img.fill(Color(0, 0, 0, 0))
-		_paint_dot(img, 16.0, 16.0, 8.0, Color(0.95, 0.93, 0.82))
-		_cache["egg"] = ImageTexture.create_from_image(img)
-	return _cache["egg"]
 
 
 static func tower() -> Texture2D:

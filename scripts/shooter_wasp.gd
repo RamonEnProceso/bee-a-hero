@@ -16,8 +16,15 @@ extends Enemy
 var _shoot_timer: float = 0.0
 
 
-func _texture() -> Texture2D:
-	return Art.shooter_wasp()
+## Los dos frames del aleteo de la avispa tiradora.
+const TIRADORA_TEXTURES := [
+	preload("res://textures/AvispaTiradora_00.png"),
+	preload("res://textures/AvispaTiradora_01.png"),
+]
+
+
+func _textures() -> Array:
+	return TIRADORA_TEXTURES
 
 
 func _ready() -> void:

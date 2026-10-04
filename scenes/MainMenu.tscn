@@ -1,6 +1,28 @@
 [gd_scene format=3 uid="uid://c7uqn15hf6y3o"]
 
 [ext_resource type="Script" uid="uid://j8ydyrhs70xu" path="res://scripts/main_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bl0nh7hot26xf" path="res://Menu/Menu.png" id="2_menu_bg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+bg_color = Color(0.135, 0.041, 0.017, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+bg_color = Color(0.118, 0.047, 0.031, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.247, 0.106, 0.071, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dimmer"]
 bg_color = Color(0, 0, 0, 0.6)
@@ -25,20 +47,27 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="." unique_id=1205859049]
+[node name="Background" type="TextureRect" parent="." unique_id=1205859049]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.12, 0.09, 0.05, 1)
+mouse_filter = 2
+texture = ExtResource("2_menu_bg")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Menu" type="CenterContainer" parent="." unique_id=669606636]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 136.0
+offset_top = 382.0
+offset_right = -522.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -46,19 +75,12 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="Menu/VBox" unique_id=1265359247]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_colors/font_outline_color = Color(0.35, 0.24, 0.06, 1)
-theme_override_constants/outline_size = 12
-theme_override_font_sizes/font_size = 64
-text = "Bee a Hero"
-horizontal_alignment = 1
-
 [node name="Subtitle" type="Label" parent="Menu/VBox" unique_id=1194859196]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.85)
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 35
 text = "Construí y defendé el panal"
 horizontal_alignment = 1
 
@@ -70,12 +92,18 @@ layout_mode = 2
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "Jugar"
 
 [node name="ComoJugarButton" type="Button" parent="Menu/VBox" unique_id=303423168]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "Cómo jugar"
 
 [node name="HowToPanel" type="PanelContainer" parent="." unique_id=973622373]
@@ -89,7 +117,6 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dimmer")
 
 [node name="Center" type="CenterContainer" parent="HowToPanel" unique_id=1326243010]
-visible = false
 layout_mode = 2
 
 [node name="Card" type="PanelContainer" parent="HowToPanel/Center" unique_id=2024126040]

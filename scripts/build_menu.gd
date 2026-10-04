@@ -33,7 +33,7 @@ const ROW_COUNTS := [2, 2, 2, 2, 2]
 ## 0.5 = media celda a la derecha. Esto es lo que genera el encastre.
 const ROW_SHIFTS := [0.0, 0.5, 0.0, 0.5, 0.0]
 
-const SPRITE_SCALE := 0.9
+const SPRITE_SCALE := 0.95
 const SPRITE_OFFSET_Y := -0.25
 const TAG_OFFSET_Y := 0.4
 const MARGIN_RIGHT := 26.0

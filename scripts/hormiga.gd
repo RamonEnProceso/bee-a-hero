@@ -15,9 +15,15 @@ var _stolen_value: int = 0
 var _fleeing: bool = false
 var _spawn_pos: Vector2
 
+## Los dos frames del aleteo de la hormiga.
+const HORMIGA_TEXTURES := [
+	preload("res://textures/hormiga_00.png"),
+	preload("res://textures/hormiga_01.png"),
+]
 
-func _texture() -> Texture2D:
-	return Art.hormiga()
+
+func _textures() -> Array:
+	return HORMIGA_TEXTURES
 
 
 func _ready() -> void:
@@ -28,13 +34,14 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if dead:
 		return
+	_animate_flap(delta)
 	_apply_knockback(delta)
 
 	# Huyendo: vuelve al borde por donde llegó y desaparece.
 	if _fleeing:
 		var dir: Vector2 = (_spawn_pos - global_position).normalized()
 		global_position += dir * speed * delta
-		rotation = dir.angle()
+		rotation = dir.angle() + rotation_offset
 		if global_position.distance_to(_spawn_pos) <= 20.0:
 			leave()
 		return
@@ -54,7 +61,7 @@ func _process(delta: float) -> void:
 	if wall == null:
 		wall = hex_grid.wall_at(hex_grid.cell_at_world(global_position))
 	if wall != null:
-		rotation = dir.angle()
+		rotation = dir.angle() + rotation_offset
 		attack_cooldown = maxf(0.0, attack_cooldown - delta)
 		if attack_cooldown <= 0.0:
 			wall.take_damage(structure_damage, self)
@@ -62,7 +69,7 @@ func _process(delta: float) -> void:
 		return
 
 	global_position += dir * speed * delta
-	rotation = dir.angle()
+	rotation = dir.angle() + rotation_offset
 
 	# Roba la gota al llegar.
 	if global_position.distance_to(_target_pickup.global_position) <= steal_range:

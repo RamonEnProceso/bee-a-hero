@@ -14,18 +14,8 @@ extends Node2D
 @export var shooter_wasp_scene: PackedScene
 ## Avispón que rompe paredes (desde la oleada 2).
 @export var hornet_scene: PackedScene
-## Insecticida en área, no atacable (oleadas pares desde la 2).
-@export var smoke_scene: PackedScene
-## Pata de gato que roba torres descubiertas (desde la oleada 4).
-@export var cat_scene: PackedScene
-## Pata de oso que roba miel (desde la oleada 5).
-@export var bear_scene: PackedScene
-## Avispa bomba: explota al morir dañando aliados cercanos (desde la oleada 3).
-@export var bomb_wasp_scene: PackedScene
 ## Hormiga: roba la miel sin recolectar y huye (desde la oleada 4).
 @export var hormiga_scene: PackedScene
-## Polilla: pone huevos dentro de la colmena (desde la oleada 5).
-@export var polilla_scene: PackedScene
 
 ## Enemigos de la primera oleada (pocos, para dar tiempo a construir).
 @export var base_enemies: int = 3
@@ -119,24 +109,9 @@ func _wave_recipe(w: int) -> Array[PackedScene]:
 	# Avispón (rompe paredes) desde la oleada 2.
 	if w >= 2 and hornet_scene != null:
 		list.append(hornet_scene)
-	# El insecticida acompaña a las oleadas pares (humo, no atacable).
-	if w >= 2 and w % 2 == 0 and smoke_scene != null:
-		list.append(smoke_scene)
-	# Pata de gato desde la oleada 4.
-	if w >= 4 and cat_scene != null:
-		list.append(cat_scene)
-	# Pata de oso desde la oleada 5.
-	if w >= 5 and bear_scene != null:
-		list.append(bear_scene)
-	# Avispa bomba desde la oleada 3.
-	if w >= 3 and bomb_wasp_scene != null:
-		list.append(bomb_wasp_scene)
 	# Hormiga desde la oleada 4.
 	if w >= 4 and hormiga_scene != null:
 		list.append(hormiga_scene)
-	# Polilla desde la oleada 5.
-	if w >= 5 and polilla_scene != null:
-		list.append(polilla_scene)
 	list.shuffle()
 	return list
 
@@ -175,10 +150,6 @@ func _spawn_at(scene: PackedScene, cell: Vector2i) -> void:
 		enemy.speed *= _speed_scale(wave)
 		enemy.died.connect(_on_enemy_died)
 		_alive += 1
-	# El humo se esparce desde una celda del borde y NO se cuenta como enemigo.
-	elif node is Smoke:
-		node.grid = hex_grid
-		node.origin_cell = cell
 
 	node.global_position = hex_grid.world_position_of(cell.x, cell.y)
 	add_child(node)

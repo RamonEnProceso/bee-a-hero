@@ -2,8 +2,8 @@ class_name Enemy
 extends Node2D
 
 ## Base de los enemigos: van en línea recta hacia la reina, atacando estructuras
-## en el camino. Los subtipos (avispa grande, avispón, torbellino, tiradora, gato,
-## oso) heredan y cambian textura, vida, velocidad y comportamiento.
+## en el camino. Los subtipos (avispa grande, avispón, torbellino, tiradora,
+## hormiga) heredan y cambian textura, vida, velocidad y comportamiento.
 
 @export var max_health: int = 3
 @export var speed: float = 100.0
@@ -24,12 +24,24 @@ extends Node2D
 @export var knockback_decay: float = 160.0
 ## Escala del sprite (los jefes son más grandes).
 @export var body_scale: float = 1.0
+## Escala base del sprite (los PNG vienen a 512 px; `body_scale` la agranda para jefes).
+@export var sprite_scale: float = 0.1
+## Segundos por frame del aleteo (solo para sprites de dos frames).
+@export var flap_interval: float = 0.12
+## Offset de rotación: los sprites PNG miran hacia abajo (-PI/2 los orienta al avance).
+@export var rotation_offset: float = -PI / 2.0
 
 ## Se emite al morir (para que el spawner cuente las bajas de la oleada).
 signal died
 
 ## Escena de la mini explosión que aparece al morir.
 const EXPLOSION_SCENE: PackedScene = preload("res://scenes/Explosion.tscn")
+
+## Los dos frames del aleteo de la avispa roja (mirando hacia abajo).
+const FLAP_TEXTURES := [
+	preload("res://textures/Avispa_00.png"),
+	preload("res://textures/Avispa_01.png"),
+]
 
 ## A quién persigue (siempre la reina).
 var target: Queen
@@ -43,25 +55,49 @@ var attack_cooldown: float = 0.0
 # Velocidad extra que empuja al enemigo al recibir daño.
 var _knockback: Vector2 = Vector2.ZERO
 var _hit_tween: Tween
+# Estado del aleteo (frames 00/01).
+var _flap_timer: float = 0.0
+var _flap_frame: int = 0
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("enemies")
-	sprite.texture = _texture()
-	sprite.scale = Vector2(body_scale, body_scale)
+	var frames: Array = _textures()
+	if not frames.is_empty():
+		sprite.texture = frames[0]
+	sprite.scale = _base_scale()
 
 
-## Textura de este enemigo (cada subtipo devuelve la suya).
-func _texture() -> Texture2D:
-	return Art.enemy()
+## Frames de animación de este enemigo. La base (avispa roja) aletea entre dos
+## frames; los subtipos con un solo sprite devuelven un array de uno.
+func _textures() -> Array:
+	return FLAP_TEXTURES
+
+
+## Escala total del sprite (base por PNG + agrandado para jefes).
+func _base_scale() -> Vector2:
+	return Vector2(body_scale * sprite_scale, body_scale * sprite_scale)
+
+
+## Aleteo: alterna los frames en bucle (solo si hay más de uno).
+func _animate_flap(delta: float) -> void:
+	var frames: Array = _textures()
+	if frames.size() <= 1:
+		return
+	_flap_timer += delta
+	if _flap_timer >= flap_interval:
+		_flap_timer = 0.0
+		_flap_frame = (_flap_frame + 1) % frames.size()
+		sprite.texture = frames[_flap_frame]
 
 
 func _process(delta: float) -> void:
 	if dead or target == null:
 		return
 
+	_animate_flap(delta)
 	attack_cooldown = maxf(0.0, attack_cooldown - delta)
 	_apply_knockback(delta)
 
@@ -76,7 +112,7 @@ func _process(delta: float) -> void:
 		if structure == null:
 			structure = hex_grid.structure_at(hex_grid.cell_at_world(global_position))
 		if structure != null:
-			rotation = dir.angle()
+			rotation = dir.angle() + rotation_offset
 			if attack_cooldown <= 0.0:
 				structure.take_damage(structure_damage, self)
 				attack_cooldown = attack_interval
@@ -84,7 +120,7 @@ func _process(delta: float) -> void:
 
 	# Sin obstáculos: avanzamos y rotamos para "mirar" hacia donde vamos.
 	global_position += dir * speed * delta
-	rotation = dir.angle()
+	rotation = dir.angle() + rotation_offset
 
 	# Si llegó a la reina, le hace daño y desaparece.
 	if global_position.distance_to(target.global_position) < 12.0:
@@ -116,9 +152,9 @@ func _hit_flash() -> void:
 		_hit_tween.kill()
 	# Un modulate alto satura los canales de color y se ve blanco.
 	sprite.modulate = Color(6.0, 6.0, 6.0, 1.0)
-	sprite.scale = Vector2(body_scale, body_scale) * 0.9
+	sprite.scale = _base_scale() * 0.9
 	_hit_tween = create_tween()
-	_hit_tween.tween_property(sprite, "scale", Vector2(body_scale, body_scale), 0.1)
+	_hit_tween.tween_property(sprite, "scale", _base_scale(), 0.1)
 	_hit_tween.parallel().tween_property(sprite, "modulate", Color.WHITE, 0.1)
 
 
