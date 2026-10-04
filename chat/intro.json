@@ -1,12 +1,11 @@
-[
-    {
-        "name":"Beerenice, la reina",
-        "contenido":["Recuerda...", "Cuantas más viviendas, más abejas.", "Cuantas más abejas, más defesas.", "Construye por nosotros. Proteje nuestra especie."],
-        "sprite":"[xxx]_idle.png"
-    },
-    {
-        "name":"Protagonista",
-        "contenido":["Bzzz bzzz"],
-        "sprite":"[xxx]_idle.png"
-    }
-]
+{
+  "id": "intro",
+  "trigger": { "type": "start" },
+  "lines": [
+    { "speaker": "reina", "text": "Recuerda..." },
+    { "speaker": "reina", "text": "Cuantas más viviendas, más abejas." },
+    { "speaker": "reina", "text": "Cuantas más abejas, más defensas." },
+    { "speaker": "reina", "text": "Construye por nosotros. Protege nuestra especie." },
+    { "speaker": "protagonista", "text": "Bzzz bzzz" }
+  ]
+}

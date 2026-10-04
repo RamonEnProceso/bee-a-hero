@@ -28,6 +28,12 @@ var level: int = 1
 func _ready() -> void:
 	health = max_health
 	sprite.texture = _texture()
+	# La textura llena todo su lienzo (221×255): la escalamos para que ocupe
+	# exactamente la celda (2·hex_size de alto por √3·hex_size de ancho).
+	if sprite.texture != null:
+		var cell_h: float = 2.0 * hex_size
+		var s: float = cell_h / sprite.texture.get_height()
+		sprite.scale = Vector2(s, s)
 	Fx.squash(sprite)
 
 

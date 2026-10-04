@@ -261,6 +261,18 @@ static func sell_value(type: int, level: int) -> int:
 	return int(round(float(total_invested(type, level)) * 3.0 / 8.0))
 
 
+## Restaura el estado global al de una partida nueva. Se llama antes de
+## recargar la escena o de volver al menú, porque `Game` (autoload) no se
+## reinicia al recargar la escena.
+func reset() -> void:
+	materials = 500
+	free_towers = 0
+	_free_tower_levels.clear()
+	slot_capacity = 1
+	_slotted.clear()
+	_slot_costs.clear()
+
+
 func _ready() -> void:
 	# Precargamos todas las texturas para evitar cortes de FPS al jugar.
 	Art.preload_all()

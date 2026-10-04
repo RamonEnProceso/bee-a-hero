@@ -9,10 +9,13 @@ extends RefCounted
 static func squash(node: Node2D) -> void:
 	if node == null:
 		return
+	# Parte de la escala actual del nodo para no pisar una escala base
+	# (ej. las paredes ya vienen escaladas al tamaño de su celda).
+	var base: Vector2 = node.scale
 	var tw := node.create_tween()
-	tw.tween_property(node, "scale", Vector2(1.25, 0.75), 0.08)
-	tw.tween_property(node, "scale", Vector2(0.85, 1.15), 0.1)
-	tw.tween_property(node, "scale", Vector2.ONE, 0.12)
+	tw.tween_property(node, "scale", base * Vector2(1.25, 0.75), 0.08)
+	tw.tween_property(node, "scale", base * Vector2(0.85, 1.15), 0.1)
+	tw.tween_property(node, "scale", base, 0.12)
 
 
 ## Ráfaga de partículas en `world_pos` (feedback al construir).

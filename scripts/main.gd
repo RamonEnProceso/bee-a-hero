@@ -7,7 +7,8 @@ extends Node2D
 @onready var builder_bee: BuilderBee = $BuilderBee
 @onready var build_menu: BuildMenu = $UILayer/BuildMenu
 @onready var material_label: Label = $UILayer/MaterialLabel/Number
-@onready var game_over_label: Label = $UILayer/GameOverLabel
+@onready var pause_menu: PauseMenu = $PauseMenu
+@onready var game_over_screen: GameOverScreen = $GameOverScreen
 @onready var wave_label: Label = $UILayer/WaveLabel
 @onready var wave_banner: Label = $UILayer/WaveBanner
 @onready var slots_label: Label = $UILayer/SlotsLabel
@@ -51,9 +52,14 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Escape cierra el menú contextual.
+	# Escape: cierra el menú contextual o abre el menú de pausa.
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		context_menu.hide_menu()
+		if not get_tree().paused:
+			if context_menu.visible:
+				context_menu.hide_menu()
+			else:
+				pause_menu.open()
+			get_viewport().set_input_as_handled()
 		return
 
 	# Drag & drop de construcción: agarrar una tarjeta arriba y soltar sobre el panal.
@@ -243,6 +249,7 @@ func _announce_wave(text: String) -> void:
 
 
 func _on_queen_died() -> void:
-	game_over_label.visible = true
 	spawner.set_process(false)
+	context_menu.hide_menu()
+	game_over_screen.show_game_over(spawner.wave)
 	get_tree().paused = true

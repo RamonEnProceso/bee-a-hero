@@ -1,0 +1,10 @@
+{
+  "reina": {
+    "name": "Beerenice, la reina",
+    "sprites": { "idle": "sprites/reina_idle.png" }
+  },
+  "protagonista": {
+    "name": "Protagonista",
+    "sprites": { "idle": "sprites/protagonista_idle.png" }
+  }
+}

@@ -225,17 +225,17 @@ static func tower() -> Texture2D:
 	return _cache["tower"]
 
 
-## Pared normal: hexágono marrón que rellena la celda.
+## Pared normal: textura PNG de /textures (pared_base).
 static func wall() -> Texture2D:
 	if not _cache.has("wall"):
-		_cache["wall"] = _wall_texture(Color(0.55, 0.35, 0.15))
+		_cache["wall"] = load("res://textures/pared_base.png")
 	return _cache["wall"]
 
 
-## Pared reforzada: gris acero (más vida, contra avispones).
+## Pared reforzada: textura PNG de /textures (pared_reforzada).
 static func reinforced_wall() -> Texture2D:
 	if not _cache.has("reinforced_wall"):
-		_cache["reinforced_wall"] = _wall_texture(Color(0.42, 0.44, 0.52))
+		_cache["reinforced_wall"] = load("res://textures/pared_reforzada.png")
 	return _cache["reinforced_wall"]
 
 
@@ -371,17 +371,6 @@ static func _star_texture(spikes: int, outer: float, inner: float, color: Color,
 		var a: float = deg_to_rad(90.0 + float(i) * 180.0 / spikes)
 		var r: float = outer if i % 2 == 0 else inner
 		pts.append(center + Vector2(cos(a), sin(a)) * r)
-	return _polygon(pts, color, size)
-
-
-## Hexágono pointy-top que rellena la celda (los subtipos de pared usan su color).
-static func _wall_texture(color: Color) -> ImageTexture:
-	var size := 64
-	var pts := PackedVector2Array()
-	var center := Vector2(size / 2.0, size / 2.0)
-	for i in 6:
-		var a: float = deg_to_rad(60.0 * i - 30.0)
-		pts.append(center + Vector2(cos(a), sin(a)) * 30.0)
 	return _polygon(pts, color, size)
 
 

@@ -31,6 +31,8 @@
 [ext_resource type="PackedScene" path="res://scenes/Polilla.tscn" id="32_polilla"]
 [ext_resource type="Script" uid="uid://c0gb0cwu7y22y" path="res://scripts/context_menu.gd" id="33_cmenu"]
 [ext_resource type="Texture2D" uid="uid://crxbryfmgcvqv" path="res://textures/Miel_HUD.png" id="40_mielhud"]
+[ext_resource type="PackedScene" path="res://scenes/PauseMenu.tscn" id="50_pause"]
+[ext_resource type="PackedScene" path="res://scenes/GameOverScreen.tscn" id="51_gameover"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.1, 0.07, 0.04, 0.62)
@@ -46,7 +48,9 @@ suicide_bee_ring = 1
 
 [node name="HexGrid" type="Node2D" parent="." unique_id=205318142]
 script = ExtResource("2_grid")
-outline_color = Color(0.95, 0.59596664, 0.13299999, 1)
+fill_color = Color(0.95, 0.8075, 0.475, 1)
+outline_color = Color(0.95, 0.7441666, 0.475, 1)
+hover_color = Color(1, 0.9505, 0.66999996, 1)
 wall_scene = ExtResource("6_wall")
 tower_scene = ExtResource("7_tower")
 reinforced_wall_scene = ExtResource("18_rwall")
@@ -168,21 +172,6 @@ layout_mode = 3
 anchors_preset = 0
 script = ExtResource("33_cmenu")
 
-[node name="GameOverLabel" type="Label" parent="UILayer" unique_id=3875102]
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(1, 0.25, 0.25, 1)
-theme_override_constants/outline_size = 16
-theme_override_font_sizes/font_size = 72
-text = "GAME OVER"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="WaveLabel" type="Label" parent="UILayer" unique_id=903885141]
 offset_left = 162.0
 offset_top = 12.0
@@ -208,3 +197,7 @@ theme_override_font_sizes/font_size = 64
 text = "Oleada 1"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PauseMenu" parent="." unique_id=481436964 instance=ExtResource("50_pause")]
+
+[node name="GameOverScreen" parent="." unique_id=1366892118 instance=ExtResource("51_gameover")]
