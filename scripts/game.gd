@@ -16,14 +16,14 @@ enum BuildType { WALL, REINFORCED, TRAP, TOWER, DOUBLE_TOWER, BASE, GUARDERIA, C
 const BUILD_DEFS := {
 	BuildType.WALL: { "name": "Pared", "cost": 5 },
 	BuildType.REINFORCED: { "name": "Pared reforzada", "cost": 15 },
-	BuildType.TRAP: { "name": "Pared trampa", "cost": 6 },
-	BuildType.TOWER: { "name": "Torre", "cost": 30 },
-	BuildType.DOUBLE_TOWER: { "name": "Torre doble", "cost": 90 },
+	BuildType.TRAP: { "name": "Pared trampa", "cost": 8 },
+	BuildType.TOWER: { "name": "Normal", "cost": 30 },
+	BuildType.DOUBLE_TOWER: { "name": "Doble", "cost": 60 },
+	BuildType.GUARDIA: { "name": "Patovica", "cost": 40 },
+	BuildType.LONG_RANGE: { "name": "Rifle", "cost": 70 },
 	BuildType.BASE: { "name": "Base", "cost": 70 },
 	BuildType.GUARDERIA: { "name": "Guardería", "cost": 100 },
 	BuildType.CULTIVADORA: { "name": "Cultivadora", "cost": 140 },
-	BuildType.GUARDIA: { "name": "Guardia", "cost": 40 },
-	BuildType.LONG_RANGE: { "name": "Largo alcance", "cost": 50 },
 }
 
 ## Material de construcción disponible (lo ganamos al destruir enemigos).
@@ -62,13 +62,14 @@ const UPGRADE_COST := {
 	2: 200,
 }
 
-## Tipos que se pueden mejorar (3 niveles). Las paredes, trampas y la torre
-## doble solo se venden, no se mejoran.
+## Tipos que se pueden mejorar (3 niveles). Las paredes y trampas solo se
+## venden, no se mejoran.
 const UPGRADABLE := {
 	BuildType.BASE: true,
 	BuildType.GUARDERIA: true,
 	BuildType.CULTIVADORA: true,
 	BuildType.TOWER: true,
+	BuildType.DOUBLE_TOWER: true,
 	BuildType.GUARDIA: true,
 	BuildType.LONG_RANGE: true,
 }
@@ -96,6 +97,11 @@ const LEVEL_STATS := {
 		{ "fire_mult": 1.0 },
 		{ "fire_mult": 0.7 },
 		{ "fire_mult": 0.5 },
+	],
+	BuildType.DOUBLE_TOWER: [
+		{ "fire_mult": 1.0 },
+		{ "fire_mult": 0.5 },
+		{ "fire_mult": 1.0 / 6.0 },
 	],
 	BuildType.LONG_RANGE: [
 		{ "damage_mult": 1.0, "fire_mult": 1.0 },

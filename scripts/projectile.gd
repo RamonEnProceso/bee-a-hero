@@ -13,11 +13,14 @@ var target: Enemy
 ## Si target == null, el proyectil viaja en esta dirección (disparo del jugador).
 var direction: Vector2 = Vector2.ZERO
 var damage: int = 1
+## Escala del sprite (el PNG de la miel viene a 64px, hay que achicarlo).
+@export var sprite_scale: float = 0.25
 @onready var sprite: Sprite2D = $Sprite2D
 
 
 func _ready() -> void:
 	sprite.texture = Art.projectile()
+	sprite.scale = Vector2(sprite_scale, sprite_scale)
 
 
 func _process(delta: float) -> void:
@@ -38,7 +41,9 @@ func _process(delta: float) -> void:
 		dir = direction
 
 	global_position += dir * speed * delta
-	rotation = dir.angle()
+	# La gota de miel dibuja con la punta hacia abajo; la rotamos -90° para que la
+	# punta apunte en la dirección de viaje.
+	rotation = dir.angle() - PI / 2.0
 
 	if target != null:
 		# Homing: al alcanzar el objetivo, le hace daño y lo empuja.

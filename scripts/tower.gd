@@ -9,6 +9,15 @@ extends Node2D
 @export var max_health: int = 4
 @export var projectile_scene: PackedScene
 
+## Escala del sprite (los PNG de las abejas vienen a 512px, hay que achicarlos).
+@export var sprite_scale: float = 0.14
+## Segundos por frame del aleteo (más chico = alas más rápidas).
+@export var flap_interval: float = 0.1
+## Amplitud del vaivén vertical (px) para el efecto de vuelo.
+@export var bob_amplitude: float = 3.0
+## Velocidad del vaivén vertical (radianes/segundo).
+@export var bob_speed: float = 6.0
+
 var grid: HexGrid
 var cell: Vector2i
 ## Celdas que ocupa esta torre (una sola).
@@ -18,6 +27,12 @@ var hex_size: float = 32.0
 var health: int
 var fire_cooldown: float = 0.0
 var _hit_tween: Tween
+# Estado del aleteo y del vaivén de vuelo.
+var _flap_timer: float = 0.0
+var _flap_frame: int = 0
+var _bob_time: float = 0.0
+## Offset temporal de la embestida (los aliados cuerpo a cuerpo lo suman al bob).
+var _lunge_offset: Vector2 = Vector2.ZERO
 @onready var sprite: Sprite2D = $Sprite2D
 
 ## Tipo de construcción (para leer costo de venta y stats de mejora).
@@ -40,24 +55,45 @@ func _ready() -> void:
 	Fx.squash(sprite)
 
 
-## Textura de la torre (la doble devuelve la suya).
-func _texture() -> Texture2D:
-	return Art.tower()
+## Frame de aleteo de esta abeja para `level` (1-3) y `frame` (0-1). Cada subtipo lo
+## sobrescribe con su propia familia de PNGs.
+func _texture_frame(level: int, frame: int) -> Texture2D:
+	return Art.tower_frame(level, frame)
+
+
+## Apunta la abeja al objetivo. Por defecto las abejas miran a la izquierda, así que
+## en vez de rotar, solo espejamos (flip_h) cuando el enemigo está a la derecha.
+## La Patovica lo sobrescribe para rotar de verdad (su sprite ya mira hacia delante).
+func _aim(target: Enemy) -> void:
+	sprite.flip_h = target.global_position.x > global_position.x
 
 
 func _process(delta: float) -> void:
 	fire_cooldown = maxf(0.0, fire_cooldown - delta)
 
 	var target: Enemy = _nearest_enemy()
-	if target == null:
-		return
+	if target != null:
+		_aim(target)
 
-	# Apuntamos hacia el enemigo más cercano.
-	rotation = (target.global_position - global_position).angle()
+		if fire_cooldown <= 0.0:
+			_shoot(target)
+			fire_cooldown = fire_interval
 
-	if fire_cooldown <= 0.0:
-		_shoot(target)
-		fire_cooldown = fire_interval
+	# El aleteo y el vaivén corren siempre, haya o no enemigo.
+	_animate_flight(delta)
+
+
+## Aleteo (frames 00/01 del nivel actual) + vaivén vertical contra-rotado para que
+## siempre suba/baje en pantalla, no a lo largo del giro hacia el enemigo.
+func _animate_flight(delta: float) -> void:
+	_flap_timer += delta
+	if _flap_timer >= flap_interval:
+		_flap_timer = 0.0
+		_flap_frame = 1 - _flap_frame
+		sprite.texture = _texture_frame(level, _flap_frame)
+	_bob_time += delta
+	var bob: float = sin(_bob_time * bob_speed) * bob_amplitude
+	sprite.position = Vector2(0.0, bob).rotated(-rotation) + _lunge_offset
 
 
 ## Busca el enemigo más cercano dentro del rango (o null si no hay).
@@ -105,14 +141,16 @@ func take_damage(amount: int, _attacker: Enemy = null) -> void:
 		die()
 
 
-## Al recibir daño se achica y se pone roja, y vuelve a la normalidad.
+## Al recibir daño se achica y se pone roja, y vuelve a su escala base (no a 1,
+## porque el sprite ya viene escalado por sprite_scale).
 func _hit_flash() -> void:
 	if _hit_tween != null and _hit_tween.is_valid():
 		_hit_tween.kill()
+	var base := Vector2(sprite_scale, sprite_scale)
 	sprite.modulate = Color(1.0, 0.3, 0.3)
-	sprite.scale = Vector2(0.7, 0.7)
+	sprite.scale = base * 0.7
 	_hit_tween = create_tween()
-	_hit_tween.tween_property(sprite, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_hit_tween.tween_property(sprite, "scale", base, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_hit_tween.parallel().tween_property(sprite, "modulate", Color.WHITE, 0.15)
 
 
@@ -192,6 +230,7 @@ func sell() -> void:
 	die()
 
 
-## Aplica la textura con el tinte del nivel actual: el sprite cambia al mejorar.
+## Aplica la textura del nivel actual (cada nivel tiene su propio PNG) y la escala.
 func _refresh_level_visual() -> void:
-	sprite.texture = Art.leveled(_texture(), level)
+	sprite.texture = _texture_frame(level, _flap_frame)
+	sprite.scale = Vector2(sprite_scale, sprite_scale)

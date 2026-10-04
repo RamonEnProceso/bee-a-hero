@@ -1,22 +1,22 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c7uqn15hf6y3o"]
 
-[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://j8ydyrhs70xu" path="res://scripts/main_menu.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dimmer"]
 bg_color = Color(0, 0, 0, 0.6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 28.0
+content_margin_top = 20.0
+content_margin_right = 28.0
+content_margin_bottom = 20.0
 bg_color = Color(0.1, 0.07, 0.04, 0.96)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-content_margin_left = 28.0
-content_margin_right = 28.0
-content_margin_top = 20.0
-content_margin_bottom = 20.0
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=364797367]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,7 +25,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1205859049]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -34,7 +34,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.12, 0.09, 0.05, 1)
 
-[node name="Menu" type="CenterContainer" parent="."]
+[node name="Menu" type="CenterContainer" parent="." unique_id=669606636]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -42,11 +42,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Menu"]
+[node name="VBox" type="VBoxContainer" parent="Menu" unique_id=1674163021]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="Menu/VBox"]
+[node name="Title" type="Label" parent="Menu/VBox" unique_id=1265359247]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0.35, 0.24, 0.06, 1)
@@ -55,30 +55,30 @@ theme_override_font_sizes/font_size = 64
 text = "Bee a Hero"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Menu/VBox"]
+[node name="Subtitle" type="Label" parent="Menu/VBox" unique_id=1194859196]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.85)
 theme_override_font_sizes/font_size = 20
 text = "Construí y defendé el panal"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="Menu/VBox"]
+[node name="Spacer" type="Control" parent="Menu/VBox" unique_id=1284346249]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 
-[node name="JugarButton" type="Button" parent="Menu/VBox"]
+[node name="JugarButton" type="Button" parent="Menu/VBox" unique_id=735189533]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Jugar"
 
-[node name="ComoJugarButton" type="Button" parent="Menu/VBox"]
+[node name="ComoJugarButton" type="Button" parent="Menu/VBox" unique_id=303423168]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Cómo jugar"
 
-[node name="HowToPanel" type="PanelContainer" parent="."]
+[node name="HowToPanel" type="PanelContainer" parent="." unique_id=973622373]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -88,32 +88,39 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dimmer")
 
-[node name="Center" type="CenterContainer" parent="HowToPanel"]
+[node name="Center" type="CenterContainer" parent="HowToPanel" unique_id=1326243010]
+visible = false
 layout_mode = 2
 
-[node name="Card" type="PanelContainer" parent="HowToPanel/Center"]
+[node name="Card" type="PanelContainer" parent="HowToPanel/Center" unique_id=2024126040]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="VBox" type="VBoxContainer" parent="HowToPanel/Center/Card"]
+[node name="VBox" type="VBoxContainer" parent="HowToPanel/Center/Card" unique_id=327122224]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="HowToTitle" type="Label" parent="HowToPanel/Center/Card/VBox"]
+[node name="HowToTitle" type="Label" parent="HowToPanel/Center/Card/VBox" unique_id=1053825867]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
 theme_override_font_sizes/font_size = 36
 text = "Cómo jugar"
 horizontal_alignment = 1
 
-[node name="HowToText" type="Label" parent="HowToPanel/Center/Card/VBox"]
+[node name="HowToText" type="Label" parent="HowToPanel/Center/Card/VBox" unique_id=634877458]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "Moverte: WASD o flechas\nDisparar: ESPACIO (apuntás con el mouse)\nConstruir: arrastrá una tarjeta de la derecha al panal\nSolo construís cerca de la abeja\nRecolectá miel para construir más"
+text = "Moverte: WASD o flechas
+
+Construir: arrastrá una tarjeta de la derecha al panal
+
+Solo construís cerca de la abeja
+Recolectá miel para construir más
+"
 horizontal_alignment = 1
 
-[node name="CerrarButton" type="Button" parent="HowToPanel/Center/Card/VBox"]
+[node name="CerrarButton" type="Button" parent="HowToPanel/Center/Card/VBox" unique_id=1489851550]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22

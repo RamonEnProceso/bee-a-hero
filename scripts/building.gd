@@ -41,6 +41,12 @@ var _mallet: Sprite2D
 var _indicator_tween: Tween
 var _mallet_tween: Tween
 var _squash_tween: Tween
+## Escala base del sprite (se calcula en _ready según el tamaño de la textura).
+## Las animaciones (golpe del mazo, squash) parten de acá para no pisarla.
+var _base_scale: Vector2 = Vector2.ONE
+## Posición base del sprite. Normalmente es (0,0); la cultivadora la desplaza al
+## mover el pivote a la base, y el shake debe vibrar alrededor de este punto.
+var _base_position: Vector2 = Vector2.ZERO
 ## Escala de todos los elementos de obra (1/3 del tamaño de las texturas).
 const CONSTRUCTION_SCALE := 0.33
 ## Posiciones de los 3 conos (esquina inferior izquierda, centro abajo y derecha).
@@ -63,6 +69,13 @@ var level: int = 1
 func _ready() -> void:
 	health = max_health
 	_refresh_level_visual()
+	# El placeholder original medía 128px; los PNG nuevos son de 512px. Los achicamos
+	# para que queden del mismo tamaño que el placeholder (128px en pantalla).
+	# Los 3 niveles comparten dimensiones, así que la escala no cambia al mejorar.
+	if sprite.texture != null:
+		var s: float = 128.0 / sprite.texture.get_height()
+		_base_scale = Vector2(s, s)
+		sprite.scale = _base_scale
 	add_to_group("buildings")
 	Fx.squash(sprite)
 	_construction_left = build_rounds
@@ -169,13 +182,14 @@ func _start_mallet_swing() -> void:
 
 
 ## Al impactar el mazo, el edificio se aplasta un poco y vuelve a su tamaño.
+## El aplastamiento parte de la escala base para no agrandar el sprite.
 func _on_mallet_strike() -> void:
 	if _squash_tween != null and _squash_tween.is_valid():
 		_squash_tween.kill()
-	sprite.scale = Vector2.ONE
+	sprite.scale = _base_scale
 	_squash_tween = create_tween()
-	_squash_tween.tween_property(sprite, "scale", Vector2(0.9, 1.1), 0.06)
-	_squash_tween.tween_property(sprite, "scale", Vector2.ONE, 0.12)
+	_squash_tween.tween_property(sprite, "scale", _base_scale * Vector2(0.9, 1.1), 0.06)
+	_squash_tween.tween_property(sprite, "scale", _base_scale, 0.12)
 
 
 ## Detiene y libera los elementos de la obra al terminar la construcción.
@@ -206,15 +220,15 @@ func take_damage(amount: int, _attacker: Enemy = null) -> void:
 		die()
 
 
-## Vibra al recibir un golpe (igual que las paredes).
+## Vibra al recibir un golpe (igual que las paredes), alrededor de la posición base.
 func _shake() -> void:
 	if _hit_tween != null and _hit_tween.is_valid():
 		_hit_tween.kill()
-	sprite.position = Vector2.ZERO
+	sprite.position = _base_position
 	_hit_tween = create_tween()
-	_hit_tween.tween_property(sprite, "position", Vector2(3.0, 0.0), 0.035)
-	_hit_tween.tween_property(sprite, "position", Vector2(-3.0, 0.0), 0.035)
-	_hit_tween.tween_property(sprite, "position", Vector2.ZERO, 0.035)
+	_hit_tween.tween_property(sprite, "position", _base_position + Vector2(3.0, 0.0), 0.035)
+	_hit_tween.tween_property(sprite, "position", _base_position + Vector2(-3.0, 0.0), 0.035)
+	_hit_tween.tween_property(sprite, "position", _base_position, 0.035)
 
 
 ## Al destruirse (por un enemigo) libera celdas y slots, sacudiendo la cámara.
@@ -295,6 +309,13 @@ func sell() -> void:
 	_teardown(false)
 
 
-## Aplica la textura con el tinte del nivel actual: el sprite cambia al mejorar.
+## Aplica la textura del nivel actual: cada edificio cambia de PNG al mejorar.
 func _refresh_level_visual() -> void:
-	sprite.texture = Art.leveled(_texture(), level)
+	if build_type == Game.BuildType.BASE:
+		sprite.texture = Art.building_leveled(level)
+	elif build_type == Game.BuildType.GUARDERIA:
+		sprite.texture = Art.guarderia_leveled(level)
+	elif build_type == Game.BuildType.CULTIVADORA:
+		sprite.texture = Art.cultivadora_leveled(level)
+	else:
+		sprite.texture = Art.leveled(_texture(), level)

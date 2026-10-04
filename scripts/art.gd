@@ -90,8 +90,9 @@ static func queen() -> Texture2D:
 
 
 static func projectile() -> Texture2D:
+	# Disparo de las abejas: textura PNG de /textures (Miel_proyectil).
 	if not _cache.has("projectile"):
-		_cache["projectile"] = _circle(4, Color(1.0, 0.9, 0.3), 16)
+		_cache["projectile"] = load("res://textures/Miel_proyectil.png")
 	return _cache["projectile"]
 
 
@@ -217,12 +218,16 @@ static func egg() -> Texture2D:
 
 
 static func tower() -> Texture2D:
-	if not _cache.has("tower"):
-		var pts := PackedVector2Array([
-			Vector2(30, 16), Vector2(2, 2), Vector2(2, 30),
-		])
-		_cache["tower"] = _polygon(pts, Color(0.9, 0.55, 0.1), 32)
-	return _cache["tower"]
+	# Torre normal: precarga sus 6 frames (3 niveles x 2 aleteos) y devuelve el icono.
+	for lvl in range(1, 4):
+		for fr in range(2):
+			tower_frame(lvl, fr)
+	return tower_frame(1, 0)
+
+
+## Frame de aleteo de la torre normal (AbejaBase) para `level` (1-3) y `frame` (0-1).
+static func tower_frame(level: int, frame: int) -> Texture2D:
+	return _bee_frame("tower", "AbejaBase", level, frame)
 
 
 ## Pared normal: textura PNG de /textures (pared_base).
@@ -239,59 +244,108 @@ static func reinforced_wall() -> Texture2D:
 	return _cache["reinforced_wall"]
 
 
-## Pared trampa: estrella de pinchos (como los de Bloons). Se consume al tocarla.
+## Pared trampa: textura PNG de /textures (pared_trampa).
 static func trap() -> Texture2D:
 	if not _cache.has("trap"):
-		_cache["trap"] = _star_texture(8, 30.0, 14.0, Color(0.35, 0.33, 0.42), 64)
+		_cache["trap"] = load("res://textures/pared_trampa.png")
 	return _cache["trap"]
 
 
 ## Torre doble: dos aguijones apuntando al mismo lado.
 static func double_tower() -> Texture2D:
-	if not _cache.has("double_tower"):
-		var polys: Array = [
-			PackedVector2Array([Vector2(30, 10), Vector2(2, 2), Vector2(2, 18)]),
-			PackedVector2Array([Vector2(30, 22), Vector2(2, 14), Vector2(2, 30)]),
-		]
-		_cache["double_tower"] = _polygons(polys, Color(0.9, 0.5, 0.1), 32)
-	return _cache["double_tower"]
+	# Precarga sus 6 frames (3 niveles x 2 aleteos) y devuelve el icono (nivel 1, frame 0).
+	for lvl in range(1, 4):
+		for fr in range(2):
+			double_tower_frame(lvl, fr)
+	return double_tower_frame(1, 0)
+
+
+## Frame de aleteo de la torre doble (AbejaDoble) para `level` (1-3) y `frame` (0-1).
+static func double_tower_frame(level: int, frame: int) -> Texture2D:
+	return _bee_frame("double_tower", "AbejaDoble", level, frame)
 
 
 
-## Guardia: abeja gorda naranja, cuerpo a cuerpo.
+## Patovica (guardia): abeja gorda cuerpo a cuerpo. Devuelve el frame 0 del nivel 1
+## (es el icono del menú) y precarga los 6 frames (3 niveles x 2 frames de aleteo).
 static func guardia() -> Texture2D:
-	if not _cache.has("guardia"):
-		_cache["guardia"] = _bee_texture_colored(48, 14.0, Color(0.95, 0.62, 0.12), Color(0.3, 0.18, 0.05))
-	return _cache["guardia"]
+	for lvl in range(1, 4):
+		for fr in range(2):
+			guardia_frame(lvl, fr)
+	return guardia_frame(1, 0)
+
+
+## Frame de aleteo de la Patovica (AbejaPatovica) para `level` (1-3) y `frame` (0-1).
+static func guardia_frame(level: int, frame: int) -> Texture2D:
+	return _bee_frame("guardia", "AbejaPatovica", level, frame)
+
+
+## Frame de aleteo genérico para las abejas con dos PNGs por nivel:
+## carga res://textures/<nombre>_<level>_0<frame>.png y lo cachea.
+static func _bee_frame(key: String, path_name: String, level: int, frame: int) -> Texture2D:
+	var k := "%s_%d_%d" % [key, level, frame]
+	if not _cache.has(k):
+		_cache[k] = load("res://textures/%s_%d_%02d.png" % [path_name, level, frame])
+	return _cache[k]
 
 
 ## Largo alcance: abeja celeste y fina, dispara aguijones.
 static func long_range() -> Texture2D:
-	if not _cache.has("long_range"):
-		_cache["long_range"] = _bee_texture_colored(40, 10.0, Color(0.55, 0.8, 1.0), Color(0.1, 0.22, 0.35))
-	return _cache["long_range"]
+	# Precarga sus 6 frames (3 niveles x 2 aleteos) y devuelve el icono (nivel 1, frame 0).
+	for lvl in range(1, 4):
+		for fr in range(2):
+			long_range_frame(lvl, fr)
+	return long_range_frame(1, 0)
+
+
+## Frame de aleteo del largo alcance (AbejaLargaDistancia) para `level` (1-3) y `frame` (0-1).
+static func long_range_frame(level: int, frame: int) -> Texture2D:
+	return _bee_frame("long_range", "AbejaLargaDistancia", level, frame)
 
 
 
-## Edificio base: hexágono dorado con puerta oscura (colmena/ciudadela).
+## Edificio base (nivel 1): textura PNG de /textures.
 static func building() -> Texture2D:
-	if not _cache.has("building"):
-		_cache["building"] = _building_texture(Color(0.25, 0.16, 0.05))
-	return _cache["building"]
+	return building_leveled(1)
 
 
-## Guardería: colmena dorada con puerta verde.
+## Textura del edificio base según su nivel de mejora: 1 = Base, 2 = Base_01, 3 = Base_02.
+static func building_leveled(level: int) -> Texture2D:
+	var key := "building_%d" % level
+	if not _cache.has(key):
+		var path := "res://textures/Base.png"
+		if level >= 3:
+			path = "res://textures/Base_02.png"
+		elif level == 2:
+			path = "res://textures/Base_01.png"
+		_cache[key] = load(path)
+	return _cache[key]
+
+
+## Guardería (nivel 1): textura PNG de /textures.
 static func guarderia() -> Texture2D:
-	if not _cache.has("guarderia"):
-		_cache["guarderia"] = _building_texture(Color(0.2, 0.6, 0.3))
-	return _cache["guarderia"]
+	return guarderia_leveled(1)
 
 
-## Cultivadora: colmena dorada con puerta violeta.
+## Textura de la guardería según su nivel de mejora: 1 = Guarderia_00, 2 = Guarderia_01, 3 = Guarderia_02.
+static func guarderia_leveled(level: int) -> Texture2D:
+	var key := "guarderia_%d" % level
+	if not _cache.has(key):
+		_cache[key] = load("res://textures/Guarderia_%02d.png" % (level - 1))
+	return _cache[key]
+
+
+## Cultivadora (nivel 1): textura PNG de /textures.
 static func cultivadora() -> Texture2D:
-	if not _cache.has("cultivadora"):
-		_cache["cultivadora"] = _building_texture(Color(0.55, 0.35, 0.8))
-	return _cache["cultivadora"]
+	return cultivadora_leveled(1)
+
+
+## Textura de la cultivadora según su nivel de mejora: 1 = Cultivadora_00, 2 = Cultivadora_01, 3 = Cultivadora_02.
+static func cultivadora_leveled(level: int) -> Texture2D:
+	var key := "cultivadora_%d" % level
+	if not _cache.has(key):
+		_cache[key] = load("res://textures/Cultivadora_%02d.png" % (level - 1))
+	return _cache[key]
 
 
 ## Generador interno: hexágono dorado con una puerta del color indicado.

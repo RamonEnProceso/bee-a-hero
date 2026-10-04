@@ -17,12 +17,12 @@ func _ready() -> void:
 	home_position = global_position
 
 
-## Embiste visual hacia `dir`: el sprite sale una distancia y vuelve a su lugar.
-## Los aliados cuerpo a cuerpo lo usan para dar la sensación de mordida/embestida.
+## Embiste visual hacia `dir`: suma un offset temporal que sale y vuelve. Se suma al
+## vaivén de vuelo (Tower._animate_flight) para no pisar el bob.
 func _lunge(dir: Vector2, distance: float = 10.0) -> void:
 	if _lunge_tween != null and _lunge_tween.is_valid():
 		_lunge_tween.kill()
-	sprite.position = Vector2.ZERO
+	var peak := dir * distance
 	_lunge_tween = create_tween()
-	_lunge_tween.tween_property(sprite, "position", dir * distance, 0.06)
-	_lunge_tween.tween_property(sprite, "position", Vector2.ZERO, 0.14)
+	_lunge_tween.tween_method(func(v: Vector2) -> void: _lunge_offset = v, Vector2.ZERO, peak, 0.06)
+	_lunge_tween.tween_method(func(v: Vector2) -> void: _lunge_offset = v, peak, Vector2.ZERO, 0.14)

@@ -173,15 +173,16 @@ anchors_preset = 0
 script = ExtResource("33_cmenu")
 
 [node name="WaveLabel" type="Label" parent="UILayer" unique_id=903885141]
-offset_left = 162.0
+offset_left = 1049.0
 offset_top = 12.0
-offset_right = 370.0
+offset_right = 1257.0
 offset_bottom = 48.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.35, 0.24, 0.06, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 text = "Oleada 1"
+horizontal_alignment = 2
 
 [node name="WaveBanner" type="Label" parent="UILayer" unique_id=1426138258]
 visible = false
@@ -199,5 +200,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PauseMenu" parent="." unique_id=481436964 instance=ExtResource("50_pause")]
+visible = false
 
 [node name="GameOverScreen" parent="." unique_id=1366892118 instance=ExtResource("51_gameover")]
+visible = false

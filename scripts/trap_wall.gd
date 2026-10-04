@@ -5,7 +5,7 @@ extends Node2D
 ## la toca, desaparece y le hace el daño de un proyectil básico.
 
 ## Daño que hace al enemigo que la pisa (= daño de un proyectil básico).
-@export var damage: int = 2
+@export var damage: int = 4
 ## Distancia a la que un enemigo activa la trampa.
 @export var trigger_radius: float = 20.0
 
@@ -18,6 +18,11 @@ var hex_size: float = 32.0
 
 func _ready() -> void:
 	sprite.texture = Art.trap()
+	# La textura de la trampa (253px) se escala para ocupar la celda, igual que las paredes.
+	if sprite.texture != null:
+		var cell_h: float = 2.0 * hex_size
+		var s: float = cell_h / sprite.texture.get_height()
+		sprite.scale = Vector2(s, s)
 	Fx.squash(sprite)
 
 
